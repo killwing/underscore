@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "Underscore.h"
+#include "underscore.h"
 using namespace std;
 
 int main() {
@@ -38,5 +38,7 @@ int main() {
 
     assert(!_::any(m1, [](string s, int i) { return s == "x"; }));
     assert(_::any(m1, [](string s, int i) { return s == "d"; }));
+
+    cout << "All tests passed." << endl;
     return 0;
 }
