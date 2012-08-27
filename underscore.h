@@ -26,12 +26,14 @@ public:
 };
 
 
-template<typename Collection, typename Function, typename std::enable_if<!isAssociativeContainer<Collection>::value, int>::type = 0>
+template<typename Collection, typename Function,
+         typename std::enable_if<!isAssociativeContainer<Collection>::value, int>::type = 0>
 void each(Collection& obj, Function iterator) {
     std::for_each(std::begin(obj), std::end(obj), iterator);
 }
 
-template<typename Collection, typename Function, typename std::enable_if<isAssociativeContainer<Collection>::value, int>::type = 0>
+template<typename Collection, typename Function,
+         typename std::enable_if<isAssociativeContainer<Collection>::value, int>::type = 0>
 void each(Collection& obj, Function iterator) {
     std::for_each(std::begin(obj), std::end(obj), [&](typename Collection::value_type& v) {
         iterator(v.second, v.first);
@@ -39,12 +41,14 @@ void each(Collection& obj, Function iterator) {
 }
 
 
-template<typename Collection, typename Function, typename std::enable_if<!isAssociativeContainer<Collection>::value, int>::type = 0>
+template<typename Collection, typename Function,
+         typename std::enable_if<!isAssociativeContainer<Collection>::value, int>::type = 0>
 bool all(const Collection& obj, Function iterator) {
     return std::all_of(std::begin(obj), std::end(obj), iterator);
 }
 
-template<typename Collection, typename Function, typename std::enable_if<isAssociativeContainer<Collection>::value, int>::type = 0>
+template<typename Collection, typename Function,
+         typename std::enable_if<isAssociativeContainer<Collection>::value, int>::type = 0>
 bool all(const Collection& obj, Function iterator) {
     return std::all_of(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
         return iterator(v.second, v.first);
@@ -52,12 +56,14 @@ bool all(const Collection& obj, Function iterator) {
 }
 
 
-template<typename Collection, typename Function, typename std::enable_if<!isAssociativeContainer<Collection>::value, int>::type = 0>
+template<typename Collection, typename Function,
+         typename std::enable_if<!isAssociativeContainer<Collection>::value, int>::type = 0>
 bool any(const Collection& obj, Function iterator) {
     return std::any_of(std::begin(obj), std::end(obj), iterator);
 }
 
-template<typename Collection, typename Function, typename std::enable_if<isAssociativeContainer<Collection>::value, int>::type = 0>
+template<typename Collection, typename Function,
+         typename std::enable_if<isAssociativeContainer<Collection>::value, int>::type = 0>
 bool any(const Collection& obj, Function iterator) {
     return std::any_of(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
         return iterator(v.second, v.first);
