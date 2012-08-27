@@ -1,3 +1,6 @@
+#ifndef UNDERSCORE_H
+#define UNDERSCORE_H
+
 #include <algorithm>
 
 namespace _ {
@@ -61,5 +64,7 @@ bool any(const Collection& obj, Function iterator) {
     });
 }
 
-}
+} // namespace _
+
+#endif // UNDERSCORE_H
 
