@@ -109,7 +109,7 @@ Collection filter(const Collection& obj, Function iterator) {
     Collection result;
     std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
         if (iterator(v)) {
-        util::add(result, v);
+            util::add(result, v);
         }
     });
     return result;
@@ -121,7 +121,7 @@ Collection filter(const Collection& obj, Function iterator) {
     Collection result;
     std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
         if (iterator(v.second, v.first)) {
-        util::add(result, v);
+            util::add(result, v);
         }
     });
     return result;
