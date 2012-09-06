@@ -1,62 +1,112 @@
 #include <iostream>
 #include <cassert>
+
+// TODO
+#include <array>
+#include <initializer_list>
+// C array
+// User defined
+
+// non-mapped containers
 #include <string>
 #include <vector>
-#include <map>
-#include <set>
+#include <deque>
+#include <list>
+#include <forward_list>
+#include <set> // multiset
+#include <unordered_set> // unordered_multiset
+// mapped containers
+#include <map> // multimap
+#include <unordered_map> // unordered_multimap
+
+// not support
+#include <stack>
+#include <queue> // priority_queue
+
 #include "underscore.h"
 using namespace std;
 
+
+template<typename T> void
+testNonMappedContainer(const string& name) {
+    // assume value could be number
+    T container { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    // each
+    int sum = 0;
+    _::each(container, [&](typename T::value_type v) {
+        sum += v;
+    });
+    assert(sum == 45); // just check sum
+
+    // all
+    assert(_::all(container, [](typename T::value_type v) {
+        return v >= 0;
+    }));
+
+    // any
+    assert(_::any(container, [](typename T::value_type v) {
+        return v > 8;
+    }));
+
+    // filter
+    T filtered = _::filter(container, [](typename T::value_type v) {  // move the result
+        return v > 5;
+    });
+    T filterRet { 6, 7, 8, 9 };
+    assert(filtered == filterRet);
+
+    cout << "[ok] test " << name << endl;
+}
+
+template<typename T> void
+testMappedContainer(const string& name) {
+    // assume key is string and value is number
+    T container {{"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}, {"x", 10}, {"y", 20}, {"z", 30}};
+
+    // each
+    _::each(container, [](typename T::mapped_type& v, typename T::key_type k) {
+        ++v;
+    });
+    T eachRet {{"a", 2}, {"b", 3}, {"c", 4}, {"d", 5}, {"x", 11}, {"y", 21}, {"z", 31}};
+    assert(container == eachRet);
+
+    // all
+    assert(_::all(container, [](typename T::mapped_type v, typename T::key_type k) {
+        return v >= 2;
+    }));
+
+    // any
+    assert(_::any(container, [](typename T::mapped_type v, typename T::key_type k) {
+        return v > 30;
+    }));
+
+    // filter
+    T filtered = _::filter(container, [](typename T::mapped_type v, typename T::key_type k) {  // move the result
+        return v > 5;
+    });
+    T filterRet {{"x", 11}, {"y", 21}, {"z", 31}};
+    assert(filtered == filterRet);
+
+    cout << "[ok] test " << name << endl;
+}
+
 int main() {
-    int a1[] {8, 6, 4, 1, 3, 9, 7, 5, 2};
-    _::each(a1, [](int i) {
-        cout << i << endl;
-    });
+    testNonMappedContainer<string>("string");
+    testNonMappedContainer<vector<int>>("vector");
+    testNonMappedContainer<deque<int>>("deque");
+    testNonMappedContainer<list<int>>("list");
+    testNonMappedContainer<forward_list<int>>("forward_list");
+    testNonMappedContainer<set<int>>("set");
+    testNonMappedContainer<multiset<int>>("multiset");
+    testNonMappedContainer<unordered_set<int>>("unordered_set");
+    testNonMappedContainer<unordered_multiset<int>>("unordered_multiset");
 
-    vector<int> v1 {2, 5, 7, 9, 3, 1, 4, 6, 8};
-    _::each(v1, [](int i) {
-        cout << i << endl;
-    });
-
-    map<int, string> m1 {{1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}};
-    _::each(m1, [](string s, int i) {
-        cout << i << s << endl;
-    });
-
-    map<int, string> m2 {{1, "x"}, {2, "x"}, {3, "x"}, {4, "x"}};
-    _::each(m2, [](string s, int i) {
-        cout << i << s << endl;
-    });
-
-    assert(!_::all(v1, [](int i) { return i > 5; }));
-    assert(_::all(v1, [](int i) { return i > 0; }));
-
-    assert(!_::all(m1, [](string s, int i) { return s == "a"; }));
-    assert(_::all(m2, [](string s, int i) { return s == "x"; }));
-
-    assert(!_::any(v1, [](int i) { return i > 9; }));
-    assert(_::any(v1, [](int i) { return i > 8; }));
-
-    assert(!_::any(m1, [](string s, int i) { return s == "x"; }));
-    assert(_::any(m1, [](string s, int i) { return s == "d"; }));
-
-
-    vector<int> v2 = _::filter(v1, [](int i) { return i > 6; });  // move the result
-    _::each(v2, [](int i) {
-        cout << i << endl;
-    });
-
-    set<int> s1 {2, 5, 7, 9, 3, 1, 4, 6, 8};
-    set<int> s2 = _::filter(s1, [](int i) { return i <= 6; });
-    _::each(s2, [](int i) {
-        cout << i << endl;
-    });
-
-    map<int, string> m3 = _::filter(m1, [](string s, int i) { return s == "a" || i == 4; });
-    _::each(m3, [](string s, int i) {
-        cout << i << s << endl;
-    });
-
+    testMappedContainer<map<string, int>>("map");
+    testMappedContainer<multimap<string, int>>("multimap");
+    testMappedContainer<unordered_map<string, int>>("unordered_map");
+    testMappedContainer<unordered_multimap<string, int>>("unordered_multimap");
+    
     cout << "All tests passed." << endl;
     return 0;
 }
