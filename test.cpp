@@ -1,13 +1,8 @@
 #include <iostream>
 #include <cassert>
 
-// TODO
 #include <array>
 #include <initializer_list>
-// C array
-// User defined
-
-// non-mapped containers
 #include <string>
 #include <vector>
 #include <deque>
@@ -15,13 +10,8 @@
 #include <forward_list>
 #include <set> // multiset
 #include <unordered_set> // unordered_multiset
-// mapped containers
 #include <map> // multimap
 #include <unordered_map> // unordered_multimap
-
-// not support
-#include <stack>
-#include <queue> // priority_queue
 
 #include "underscore.h"
 using namespace std;
@@ -91,6 +81,31 @@ testMappedContainer(const string& name) {
     cout << "[ok] test " << name << endl;
 }
 
+template<typename T> void
+testFixedLengthContainer(const string& name) {
+    // assume value could be number
+    T container = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    // each
+    int sum = 0;
+    _::each(container, [&](int v) {
+        sum += v;
+    });
+    assert(sum == 45); // just check sum
+
+    // all
+    assert(_::all(container, [](int v) {
+        return v >= 0;
+    }));
+
+    // any
+    assert(_::any(container, [](int v) {
+        return v > 8;
+    }));
+
+    cout << "[ok] test " << name << endl;
+}
+
 int main() {
     testNonMappedContainer<string>("string");
     testNonMappedContainer<vector<int>>("vector");
@@ -107,6 +122,9 @@ int main() {
     testMappedContainer<unordered_map<string, int>>("unordered_map");
     testMappedContainer<unordered_multimap<string, int>>("unordered_multimap");
     
+    testFixedLengthContainer<int [10]>("c_array");
+    testFixedLengthContainer<array<int, 10>>("array");
+    testFixedLengthContainer<initializer_list<int>>("initializer_list");
     cout << "All tests passed." << endl;
     return 0;
 }
