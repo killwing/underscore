@@ -126,6 +126,7 @@ any(const Collection& obj, Function iterator) {
     });
 }
 
+
 template<typename Collection, typename Function>
 typename std::enable_if<!util::IsMappedContainer<Collection>::value, Collection>::type
 filter(const Collection& obj, Function iterator) {
@@ -149,6 +150,7 @@ filter(const Collection& obj, Function iterator) {
     });
     return result;
 }
+
 
 } // namespace _
 

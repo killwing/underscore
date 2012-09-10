@@ -125,6 +125,7 @@ int main() {
     testFixedLengthContainer<int [10]>("c_array");
     testFixedLengthContainer<array<int, 10>>("array");
     testFixedLengthContainer<initializer_list<int>>("initializer_list");
+
     cout << "All tests passed." << endl;
     return 0;
 }

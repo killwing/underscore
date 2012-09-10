@@ -1,6 +1,6 @@
 Underscore
 ==========
-An C++11 library inspired by [underscore.js](http://underscorejs.org)
+An C++11 library inspired by [underscore.js](http://underscorejs.org)  
 It supports collection (container) functions like underscorejs.
 
 Supported Containers:
@@ -18,8 +18,8 @@ Not Supported Containers:
 * stack
 * queue & priority_queue
 
-NOTE: 
-For fixed-length arrays (C-style array, std::array, std::initializer_list, etc.), 
+NOTE:  
+For fixed-length arrays (C-style array, std::array, std::initializer_list, etc.),  
 they also could apply to some algorithms (see `test.cpp`).
 
 
