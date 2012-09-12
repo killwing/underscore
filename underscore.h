@@ -204,7 +204,6 @@ reduce(const Collection& obj, Function iterator, Memo memo) {
     return memo;
 }
 
-
 template<typename Collection, typename Function, typename Memo>
 typename std::enable_if<util::IsMappedContainer<Collection>::value, Memo>::type
 reduce(const Collection& obj, Function iterator, Memo memo) {
