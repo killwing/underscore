@@ -56,27 +56,31 @@ public:
     static const bool value = !std::is_void<decltype(check<T>(nullptr))>::value;
 };
 
-template<typename T>
+template<typename T, typename U>
 typename std::enable_if<HasPushBack<T>::value, void>::type 
-add(T& c, const typename T::value_type& v) {
-    c.push_back(v);
+add(T& c, U&& v) {
+    static_assert(std::is_same<typename T::value_type, typename std::decay<U>::type>::value, "util::add - push_back type inconsistent");
+    c.push_back(std::forward<U>(v));
 }
 
-template<typename T>
+template<typename T, typename U>
 typename std::enable_if<HasInsert<T>::value, void>::type 
-add(T& c, const typename T::value_type& v) {
-    c.insert(v);
+add(T& c, U&& v) {
+    static_assert(std::is_same<typename T::value_type, typename std::decay<U>::type>::value, "util::add - insert type inconsistent");
+    c.insert(std::forward<U>(v));
 }
 
-template<typename T>
+template<typename T, typename U>
 typename std::enable_if<HasInsertAfter<T>::value, void>::type 
-add(T& c, const typename T::value_type& v) {
+add(T& c, U&& v) {
+    static_assert(std::is_same<typename T::value_type, typename std::decay<U>::type>::value, "util::add - insert_after type inconsistent");
+
     // get to the end of the list, which is O(N) and not fast at all
     auto before_end = c.before_begin();
     for (auto& _ : c) {
         ++before_end;
     }
-    c.insert_after(before_end, v);
+    c.insert_after(before_end, std::forward<U>(v));
 }
 
 } // namespace util
