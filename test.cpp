@@ -40,11 +40,24 @@ testNonMappedContainer(const string& name) {
     }));
 
     // filter
-    T filtered = _::filter(container, [](typename T::value_type v) {  // move the result
+    auto filtered = _::filter(container, [](typename T::value_type v) {  // move the result
         return v > 5;
     });
     T filterRet { 6, 7, 8, 9 };
     assert(filtered == filterRet);
+
+    // map
+    auto mapped = _::map(container, [](typename T::value_type v) {
+        return v * 0;
+    });
+    vector<int> mapRet { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    assert(mapped == mapRet);
+    
+    auto mappedList = _::map<list>(container, [](typename T::value_type v) { // use list as result container
+        return "item";
+    });
+    list<const char*> mapRetList { "item", "item", "item", "item", "item", "item", "item", "item", "item", "item"};
+    assert(mappedList == mapRetList);
 
     cout << "[ok] test " << name << endl;
 }
@@ -77,6 +90,19 @@ testMappedContainer(const string& name) {
     });
     T filterRet {{"x", 11}, {"y", 21}, {"z", 31}};
     assert(filtered == filterRet);
+
+    // map
+    auto mapped = _::map(container, [](typename T::mapped_type v, typename T::key_type k) {
+        return v * 0;
+    });
+    vector<int> mapRet { 0, 0, 0, 0, 0, 0, 0 };
+    assert(mapped == mapRet);
+    
+    auto mappedList = _::map<list>(container, [](typename T::mapped_type v, typename T::key_type k) { // use list as result container
+        return "item";
+    });
+    list<const char*> mapRetList { "item", "item", "item", "item", "item", "item", "item" };
+    assert(mappedList == mapRetList);
 
     cout << "[ok] test " << name << endl;
 }

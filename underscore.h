@@ -152,6 +152,40 @@ filter(const Collection& obj, Function iterator) {
 }
 
 
+template<template<class T, class Allocator = std::allocator<T>> 
+         class RetCollection = std::vector, 
+         typename Collection, 
+         typename Function> auto
+map(const Collection& obj, Function iterator) 
+    -> typename std::enable_if<!util::IsMappedContainer<Collection>::value,
+                               RetCollection<decltype(iterator(typename Collection::value_type()))>
+                              >::type {
+
+    RetCollection<decltype(iterator(typename Collection::value_type()))> result;
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        util::add(result, iterator(v));
+    });
+    return result;
+}
+
+template<template<class T, class Allocator = std::allocator<T>> 
+         class RetCollection = std::vector, 
+         typename Collection, 
+         typename Function> auto
+map(const Collection& obj, Function iterator) 
+    -> typename std::enable_if<util::IsMappedContainer<Collection>::value,
+                               RetCollection<decltype(iterator(typename Collection::mapped_type(), 
+                                                               typename Collection::key_type()))>
+                              >::type {
+
+    RetCollection<decltype(iterator(typename Collection::mapped_type(), typename Collection::key_type()))> result;
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        util::add(result, iterator(v.second, v.first));
+    });
+    return result;
+}
+
+
 } // namespace _
 
 #endif // UNDERSCORE_H
