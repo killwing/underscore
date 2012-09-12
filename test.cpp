@@ -52,12 +52,18 @@ testNonMappedContainer(const string& name) {
     });
     vector<int> mapRet { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     assert(mapped == mapRet);
-    
+
     auto mappedList = _::map<list>(container, [](typename T::value_type v) { // use list as result container
         return "item";
     });
     list<const char*> mapRetList { "item", "item", "item", "item", "item", "item", "item", "item", "item", "item"};
     assert(mappedList == mapRetList);
+
+    // reduce
+    sum = _::reduce(container, [](int memo, typename T::value_type v) {
+        return memo + v; 
+    }, 100.0); // convertible
+    assert(sum == 145);
 
     cout << "[ok] test " << name << endl;
 }
@@ -97,12 +103,18 @@ testMappedContainer(const string& name) {
     });
     vector<int> mapRet { 0, 0, 0, 0, 0, 0, 0 };
     assert(mapped == mapRet);
-    
+
     auto mappedList = _::map<list>(container, [](typename T::mapped_type v, typename T::key_type k) { // use list as result container
         return "item";
     });
     list<const char*> mapRetList { "item", "item", "item", "item", "item", "item", "item" };
     assert(mappedList == mapRetList);
+
+    // reduce
+    int sum = _::reduce(container, [](int memo, typename T::mapped_type v, typename T::key_type k) {
+        return memo + v; 
+    }, 100.0);
+    assert(sum == 177);
 
     cout << "[ok] test " << name << endl;
 }
@@ -147,7 +159,7 @@ int main() {
     testMappedContainer<multimap<string, int>>("multimap");
     testMappedContainer<unordered_map<string, int>>("unordered_map");
     testMappedContainer<unordered_multimap<string, int>>("unordered_multimap");
-    
+
     testFixedLengthContainer<int [10]>("c_array");
     testFixedLengthContainer<array<int, 10>>("array");
     testFixedLengthContainer<initializer_list<int>>("initializer_list");

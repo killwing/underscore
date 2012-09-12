@@ -57,23 +57,26 @@ public:
 };
 
 template<typename T, typename U>
-typename std::enable_if<HasPushBack<T>::value, void>::type 
+typename std::enable_if<HasPushBack<T>::value, void>::type
 add(T& c, U&& v) {
-    static_assert(std::is_same<typename T::value_type, typename std::decay<U>::type>::value, "util::add - push_back type inconsistent");
+    static_assert(std::is_same<typename T::value_type, 
+        typename std::decay<U>::type>::value, "util::add - push_back type inconsistent");
     c.push_back(std::forward<U>(v));
 }
 
 template<typename T, typename U>
-typename std::enable_if<HasInsert<T>::value, void>::type 
+typename std::enable_if<HasInsert<T>::value, void>::type
 add(T& c, U&& v) {
-    static_assert(std::is_same<typename T::value_type, typename std::decay<U>::type>::value, "util::add - insert type inconsistent");
+    static_assert(std::is_same<typename T::value_type, 
+        typename std::decay<U>::type>::value, "util::add - insert type inconsistent");
     c.insert(std::forward<U>(v));
 }
 
 template<typename T, typename U>
-typename std::enable_if<HasInsertAfter<T>::value, void>::type 
+typename std::enable_if<HasInsertAfter<T>::value, void>::type
 add(T& c, U&& v) {
-    static_assert(std::is_same<typename T::value_type, typename std::decay<U>::type>::value, "util::add - insert_after type inconsistent");
+    static_assert(std::is_same<typename T::value_type, 
+        typename std::decay<U>::type>::value, "util::add - insert_after type inconsistent");
 
     // get to the end of the list, which is O(N) and not fast at all
     auto before_end = c.before_begin();
@@ -156,11 +159,11 @@ filter(const Collection& obj, Function iterator) {
 }
 
 
-template<template<class T, class Allocator = std::allocator<T>> 
-         class RetCollection = std::vector, 
-         typename Collection, 
+template<template<class T, class Allocator = std::allocator<T>>
+         class RetCollection = std::vector,
+         typename Collection,
          typename Function> auto
-map(const Collection& obj, Function iterator) 
+map(const Collection& obj, Function iterator)
     -> typename std::enable_if<!util::IsMappedContainer<Collection>::value,
                                RetCollection<decltype(iterator(typename Collection::value_type()))>
                               >::type {
@@ -173,13 +176,13 @@ map(const Collection& obj, Function iterator)
     return result;
 }
 
-template<template<class T, class Allocator = std::allocator<T>> 
-         class RetCollection = std::vector, 
-         typename Collection, 
+template<template<class T, class Allocator = std::allocator<T>>
+         class RetCollection = std::vector,
+         typename Collection,
          typename Function> auto
-map(const Collection& obj, Function iterator) 
+map(const Collection& obj, Function iterator)
     -> typename std::enable_if<util::IsMappedContainer<Collection>::value,
-                               RetCollection<decltype(iterator(typename Collection::mapped_type(), 
+                               RetCollection<decltype(iterator(typename Collection::mapped_type(),
                                                                typename Collection::key_type()))>
                               >::type {
 
@@ -189,6 +192,26 @@ map(const Collection& obj, Function iterator)
         util::add(result, iterator(v.second, v.first));
     });
     return result;
+}
+
+
+template<typename Collection, typename Function, typename Memo>
+typename std::enable_if<!util::IsMappedContainer<Collection>::value, Memo>::type
+reduce(const Collection& obj, Function iterator, Memo memo) {
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        memo = iterator(memo, v);
+    });
+    return memo;
+}
+
+
+template<typename Collection, typename Function, typename Memo>
+typename std::enable_if<util::IsMappedContainer<Collection>::value, Memo>::type
+reduce(const Collection& obj, Function iterator, Memo memo) {
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        memo = iterator(memo, v.second, v.first);
+    });
+    return memo;
 }
 
 
