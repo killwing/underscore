@@ -25,7 +25,7 @@ they also could apply to some algorithms (see `test.cpp`).
 
 Collection (Container) Functions:
 * each
-* *map*
+* map
 * *reduce*
 * *reduceRight*
 * *find*

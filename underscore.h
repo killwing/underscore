@@ -161,7 +161,8 @@ map(const Collection& obj, Function iterator)
                                RetCollection<decltype(iterator(typename Collection::value_type()))>
                               >::type {
 
-    RetCollection<decltype(iterator(typename Collection::value_type()))> result;
+    using R = decltype(iterator(typename Collection::value_type()));
+    RetCollection<R> result;
     std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
         util::add(result, iterator(v));
     });
@@ -178,7 +179,8 @@ map(const Collection& obj, Function iterator)
                                                                typename Collection::key_type()))>
                               >::type {
 
-    RetCollection<decltype(iterator(typename Collection::mapped_type(), typename Collection::key_type()))> result;
+    using R = decltype(iterator(typename Collection::mapped_type(), typename Collection::key_type()));
+    RetCollection<R> result;
     std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
         util::add(result, iterator(v.second, v.first));
     });
