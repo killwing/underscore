@@ -104,6 +104,164 @@ each(Collection& obj, Function iterator) {
 }
 
 
+template<template<class T, class Allocator = std::allocator<T>>
+         class RetCollection = std::vector,
+         typename Collection,
+         typename Function> auto
+map(const Collection& obj, Function iterator)
+    -> typename std::enable_if<!util::IsMappedContainer<Collection>::value, 
+        RetCollection<decltype(iterator(typename Collection::value_type()))>>::type {
+
+    using R = decltype(iterator(typename Collection::value_type()));
+    RetCollection<R> result;
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        util::add(result, iterator(v));
+    });
+    return result;
+}
+
+template<template<class T, class Allocator = std::allocator<T>>
+         class RetCollection = std::vector,
+         typename Collection,
+         typename Function> auto
+map(const Collection& obj, Function iterator)
+    -> typename std::enable_if<util::IsMappedContainer<Collection>::value, 
+        RetCollection<decltype(iterator(typename Collection::mapped_type(), typename Collection::key_type()))>>::type {
+
+    using R = decltype(iterator(typename Collection::mapped_type(), typename Collection::key_type()));
+    RetCollection<R> result;
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        util::add(result, iterator(v.second, v.first));
+    });
+    return result;
+}
+
+
+template<typename Collection, typename Function, typename Memo>
+typename std::enable_if<!util::IsMappedContainer<Collection>::value, Memo>::type
+reduce(const Collection& obj, Function iterator, Memo memo) {
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        memo = iterator(memo, v);
+    });
+    return memo;
+}
+
+template<typename Collection, typename Function, typename Memo>
+typename std::enable_if<util::IsMappedContainer<Collection>::value, Memo>::type
+reduce(const Collection& obj, Function iterator, Memo memo) {
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        memo = iterator(memo, v.second, v.first);
+    });
+    return memo;
+}
+
+
+template<typename Collection, typename Function, typename Memo>
+typename std::enable_if<!util::IsMappedContainer<Collection>::value, Memo>::type
+reduceRight(const Collection& obj, Function iterator, Memo memo) {
+    for (typename Collection::const_reverse_iterator it = obj.rbegin(); it != obj.rend(); ++it) {
+        memo = iterator(memo, *it);
+    }
+    return memo;
+}
+
+template<typename Collection, typename Function, typename Memo>
+typename std::enable_if<util::IsMappedContainer<Collection>::value, Memo>::type
+reduceRight(const Collection& obj, Function iterator, Memo memo) {
+    for (typename Collection::const_reverse_iterator it = obj.rbegin(); it != obj.rend(); ++it) {
+        memo = iterator(memo, it->second, it->first);
+    }
+    return memo;
+}
+
+
+template<typename Collection, typename Function>
+typename std::enable_if<!util::IsMappedContainer<Collection>::value, const typename Collection::value_type*>::type
+find(const Collection& obj, Function iterator) {
+    auto it = std::find_if(std::begin(obj), std::end(obj), iterator);
+    return it == std::end(obj) ? nullptr : &(*it);
+}
+
+template<typename Collection, typename Function>
+typename std::enable_if<util::IsMappedContainer<Collection>::value, const typename Collection::mapped_type*>::type
+find(const Collection& obj, Function iterator) {
+    auto it = std::find_if(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        return iterator(v.second, v.first);
+    });
+    return it == std::end(obj) ? nullptr : &(it->second);
+}
+
+
+template<template<class T, class Allocator = std::allocator<T>>
+         class RetCollection = std::vector,
+         typename Collection,
+         typename Function> auto
+filter(const Collection& obj, Function iterator)
+    -> typename std::enable_if<!util::IsMappedContainer<Collection>::value, 
+        RetCollection<typename Collection::value_type>>::type {
+
+    RetCollection<typename Collection::value_type> result;
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        if (iterator(v)) {
+            util::add(result, v);
+        }
+    });
+    return result;
+}
+
+template<template<class T, class Allocator = std::allocator<T>>
+         class RetCollection = std::vector,
+         typename Collection,
+         typename Function> auto
+filter(const Collection& obj, Function iterator)
+    -> typename std::enable_if<util::IsMappedContainer<Collection>::value, 
+        RetCollection<typename Collection::mapped_type>>::type {
+
+    RetCollection<typename Collection::mapped_type> result;
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        if (iterator(v.second, v.first)) {
+            util::add(result, v.second);
+        }
+    });
+    return result;
+}
+
+
+template<template<class T, class Allocator = std::allocator<T>>
+         class RetCollection = std::vector,
+         typename Collection,
+         typename Function> auto
+reject(const Collection& obj, Function iterator)
+    -> typename std::enable_if<!util::IsMappedContainer<Collection>::value, 
+        RetCollection<typename Collection::value_type>>::type {
+
+    RetCollection<typename Collection::value_type> result;
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        if (!iterator(v)) {
+            util::add(result, v);
+        }
+    });
+    return result;
+}
+
+template<template<class T, class Allocator = std::allocator<T>>
+         class RetCollection = std::vector,
+         typename Collection,
+         typename Function> auto
+reject(const Collection& obj, Function iterator)
+    -> typename std::enable_if<util::IsMappedContainer<Collection>::value, 
+        RetCollection<typename Collection::mapped_type>>::type {
+
+    RetCollection<typename Collection::mapped_type> result;
+    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
+        if (!iterator(v.second, v.first)) {
+            util::add(result, v.second);
+        }
+    });
+    return result;
+}
+
+
 template<typename Collection, typename Function>
 typename std::enable_if<!util::IsMappedContainer<Collection>::value, bool>::type
 all(const Collection& obj, Function iterator) {
@@ -131,86 +289,6 @@ any(const Collection& obj, Function iterator) {
     return std::any_of(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
         return iterator(v.second, v.first);
     });
-}
-
-
-template<typename Collection, typename Function>
-typename std::enable_if<!util::IsMappedContainer<Collection>::value, Collection>::type
-filter(const Collection& obj, Function iterator) {
-    Collection result;
-    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
-        if (iterator(v)) {
-            util::add(result, v);
-        }
-    });
-    return result;
-}
-
-template<typename Collection, typename Function>
-typename std::enable_if<util::IsMappedContainer<Collection>::value, Collection>::type
-filter(const Collection& obj, Function iterator) {
-    Collection result;
-    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
-        if (iterator(v.second, v.first)) {
-            util::add(result, v);
-        }
-    });
-    return result;
-}
-
-
-template<template<class T, class Allocator = std::allocator<T>>
-         class RetCollection = std::vector,
-         typename Collection,
-         typename Function> auto
-map(const Collection& obj, Function iterator)
-    -> typename std::enable_if<!util::IsMappedContainer<Collection>::value,
-                               RetCollection<decltype(iterator(typename Collection::value_type()))>
-                              >::type {
-
-    using R = decltype(iterator(typename Collection::value_type()));
-    RetCollection<R> result;
-    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
-        util::add(result, iterator(v));
-    });
-    return result;
-}
-
-template<template<class T, class Allocator = std::allocator<T>>
-         class RetCollection = std::vector,
-         typename Collection,
-         typename Function> auto
-map(const Collection& obj, Function iterator)
-    -> typename std::enable_if<util::IsMappedContainer<Collection>::value,
-                               RetCollection<decltype(iterator(typename Collection::mapped_type(),
-                                                               typename Collection::key_type()))>
-                              >::type {
-
-    using R = decltype(iterator(typename Collection::mapped_type(), typename Collection::key_type()));
-    RetCollection<R> result;
-    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
-        util::add(result, iterator(v.second, v.first));
-    });
-    return result;
-}
-
-
-template<typename Collection, typename Function, typename Memo>
-typename std::enable_if<!util::IsMappedContainer<Collection>::value, Memo>::type
-reduce(const Collection& obj, Function iterator, Memo memo) {
-    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
-        memo = iterator(memo, v);
-    });
-    return memo;
-}
-
-template<typename Collection, typename Function, typename Memo>
-typename std::enable_if<util::IsMappedContainer<Collection>::value, Memo>::type
-reduce(const Collection& obj, Function iterator, Memo memo) {
-    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
-        memo = iterator(memo, v.second, v.first);
-    });
-    return memo;
 }
 
 

@@ -14,23 +14,24 @@ Supported Containers:
 * map multimap
 * unordered_map & unordered_multimap
 
+Fixed-Length:
+* C-style array
+* array
+* initializer_list
+
 Not Supported Containers:
 * stack
 * queue & priority_queue
-
-NOTE:  
-For fixed-length arrays (C-style array, std::array, std::initializer_list, etc.),  
-they also could apply to some algorithms (see `test.cpp`).
 
 
 Collection (Container) Functions:
 * each
 * map
 * reduce
-* *reduceRight*
-* *find*
-* filter
-* *reject*
+* reduceRight (Bidirectional Iterator)
+* find
+* filter (Non Fixed-Length)
+* reject (Non Fixed-Length)
 * all
 * any
 * *include*
@@ -38,7 +39,7 @@ Collection (Container) Functions:
 * *pluck*
 * *max*
 * *min*
-* *sortBy*
+* *sortBy* (RandomAccess Iterator)
 * *groupBy*
 * *sortedIndex*
 * *shuffle*
