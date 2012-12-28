@@ -3,18 +3,20 @@ Underscore
 An C++11 library inspired by [underscore.js](http://underscorejs.org)  
 It supports collection (container) functions like underscorejs.
 
-Supported Containers:
-* string
-* vector
-* deque
-* list
-* forward_list
-* set & multiset
-* unordered_set & unordered_multiset
-* map multimap
-* unordered_map & unordered_multimap
+RandomAccess > Bidirectional > Forward > Input	
 
-Fixed-Length:
+Supported Containers:
+* string (R)
+* vector (R)
+* deque (R)
+* list (B)
+* forward_list (F)
+* set & multiset (B)
+* unordered_set & unordered_multiset (F)
+* map & multimap (B)
+* unordered_map & unordered_multimap (F)
+
+Fixed-Length (R):
 * C-style array
 * array
 * initializer_list
@@ -24,24 +26,25 @@ Not Supported Containers:
 * queue & priority_queue
 
 
-Collection (Container) Functions:
-* each
-* map
-* reduce
-* reduceRight (Bidirectional Iterator)
-* find
+Collection (Container) Functions (Requirement):
+* each (I)
+* map (I)
+* reduce (I)
+* reduceRight (B)
+* find (I)
 * filter (Non Fixed-Length)
+* *where*
 * reject (Non Fixed-Length)
-* all
-* any
-* *include*
+* every (I)
+* some (I)
+* contains (I)
 * *invoke*
 * *pluck*
 * *max*
 * *min*
-* *sortBy* (RandomAccess Iterator)
+* *sortBy* (R)
 * *groupBy*
-* *sortedIndex*
+* *countBy*
 * *shuffle*
 * *toArray*
 * *size*

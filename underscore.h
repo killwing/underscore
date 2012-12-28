@@ -264,13 +264,13 @@ reject(const Collection& obj, Function iterator)
 
 template<typename Collection, typename Function>
 typename std::enable_if<!util::IsMappedContainer<Collection>::value, bool>::type
-all(const Collection& obj, Function iterator) {
+every(const Collection& obj, Function iterator) {
     return std::all_of(std::begin(obj), std::end(obj), iterator);
 }
 
 template<typename Collection, typename Function>
 typename std::enable_if<util::IsMappedContainer<Collection>::value, bool>::type
-all(const Collection& obj, Function iterator) {
+every(const Collection& obj, Function iterator) {
     return std::all_of(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
         return iterator(v.second, v.first);
     });
@@ -279,18 +279,22 @@ all(const Collection& obj, Function iterator) {
 
 template<typename Collection, typename Function>
 typename std::enable_if<!util::IsMappedContainer<Collection>::value, bool>::type
-any(const Collection& obj, Function iterator) {
+some(const Collection& obj, Function iterator) {
     return std::any_of(std::begin(obj), std::end(obj), iterator);
 }
 
 template<typename Collection, typename Function>
 typename std::enable_if<util::IsMappedContainer<Collection>::value, bool>::type
-any(const Collection& obj, Function iterator) {
+some(const Collection& obj, Function iterator) {
     return std::any_of(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
         return iterator(v.second, v.first);
     });
 }
 
+template<typename Collection> bool
+contains(const Collection& obj, const typename Collection::value_type& value) {
+    return std::find(std::begin(obj), std::end(obj), value) != std::end(obj);
+}
 
 } // namespace _
 

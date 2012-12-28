@@ -71,15 +71,18 @@ testInputIt(const string& name) {
     vector<typename T::value_type> rejectRet { 6, 7, 8, 9 };
     assert(rejected == rejectRet);
 
-    // all
-    assert(_::all(container, [](typename T::value_type v) {
+    // every
+    assert(_::every(container, [](typename T::value_type v) {
         return v >= 0;
     }));
 
-    // any
-    assert(_::any(container, [](typename T::value_type v) {
+    // some
+    assert(_::some(container, [](typename T::value_type v) {
         return v > 8;
     }));
+
+    // contains
+    assert(_::contains(container, 9));
 
     cout << "[ok] testInputIt " << name << endl;
 }
@@ -155,15 +158,18 @@ testInputIt(const string& name) {
     std::sort(rejected.begin(), rejected.end());
     assert(rejected == rejectRet);
 
-    // all
-    assert(_::all(container, [](typename T::mapped_type v, typename T::key_type k) {
+    // every
+    assert(_::every(container, [](typename T::mapped_type v, typename T::key_type k) {
         return v >= 2;
     }));
 
-    // any
-    assert(_::any(container, [](typename T::mapped_type v, typename T::key_type k) {
+    // some
+    assert(_::some(container, [](typename T::mapped_type v, typename T::key_type k) {
         return v > 30;
     }));
+
+    // contains
+    assert(_::contains(container, typename T::value_type("c", 4)));
 
     cout << "[ok] testInputIt " << name << endl;
 }
@@ -195,13 +201,13 @@ testFixedLength(const string& name) {
     });
     assert(sum == 45); // just check sum
 
-    // all
-    assert(_::all(container, [](int v) {
+    // every
+    assert(_::every(container, [](int v) {
         return v >= 0;
     }));
 
-    // any
-    assert(_::any(container, [](int v) {
+    // some
+    assert(_::some(container, [](int v) {
         return v > 8;
     }));
 
