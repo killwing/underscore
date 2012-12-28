@@ -61,14 +61,14 @@ testInputIt(const string& name) {
     auto filtered = _::filter(container, [](typename T::value_type v) {
         return v > 5;
     });
-    vector<typename T::value_type> filterRet { 6, 7, 8, 9 };
+    T filterRet { 6, 7, 8, 9 };
     assert(filtered == filterRet);
 
     // reject
     auto rejected = _::reject(container, [](typename T::value_type v) {
         return v <= 5;
     });
-    vector<typename T::value_type> rejectRet { 6, 7, 8, 9 };
+    T rejectRet { 6, 7, 8, 9 };
     assert(rejected == rejectRet);
 
     // every
@@ -109,63 +109,61 @@ testInputIt(const string& name) {
     T container {{"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}, {"x", 10}, {"y", 20}, {"z", 30}};
 
     // each
-    _::each(container, [](typename T::mapped_type& v, typename T::key_type k) {
-        ++v;
+    _::each(container, [](typename T::value_type& v) {
+        ++v.second;
     });
     T eachRet {{"a", 2}, {"b", 3}, {"c", 4}, {"d", 5}, {"x", 11}, {"y", 21}, {"z", 31}};
     assert(container == eachRet);
 
     // map
-    auto mapped = _::map(container, [](typename T::mapped_type v, typename T::key_type k) {
-        return v * 2;
+    auto mapped = _::map(container, [](typename T::value_type v) {
+        return v.second * 2;
     });
     vector<int> mapRet { 4, 6, 8, 10, 22, 42, 62 };
     sort(mapped.begin(), mapped.end()); // need sort to check
     assert(mapped == mapRet);
 
-    auto mappedDq = _::map<deque>(container, [](typename T::mapped_type v, typename T::key_type k) {
-        return v * 2;
+    auto mappedDq = _::map<deque>(container, [](typename T::value_type v) {
+        return v.second * 2;
     });
     deque<int> mapRetDq { 4, 6, 8, 10, 22, 42, 62 };
     sort(mappedDq.begin(), mappedDq.end());
     assert(mappedDq == mapRetDq);
 
     // reduce
-    auto sum = _::reduce(container, [](int memo, typename T::mapped_type v, typename T::key_type k) {
-        return memo + v; 
+    auto sum = _::reduce(container, [](int memo, typename T::value_type v) {
+        return memo + v.second; 
     }, 100.0);
     assert(sum == 177);
 
     // find
-    auto target = _::find(container, [](typename T::mapped_type v, typename T::key_type k) {
-        return k == "x";
+    auto target = _::find(container, [](typename T::value_type v) {
+        return v.first == "x";
     });
-    assert(*target == 11);
+    assert(target->second == 11);
 
     // filter
-    auto filtered = _::filter(container, [](typename T::mapped_type v, typename T::key_type k) {  // move the result
-        return v > 5;
+    auto filtered = _::filter<T>(container, [](typename T::value_type v) {  // move the result
+        return v.second > 5;
     });
-    vector<typename T::mapped_type> filterRet {11, 21, 31};
-    std::sort(filtered.begin(), filtered.end());
+    T filterRet {{"x", 11}, {"y", 21}, {"z", 31}};
     assert(filtered == filterRet);
 
     // reject
-    auto rejected = _::reject(container, [](typename T::mapped_type v, typename T::key_type k) {
-        return v <= 5;
+    auto rejected = _::reject(container, [](typename T::value_type v) {
+        return v.second <= 5;
     });
-    vector<typename T::mapped_type> rejectRet { 11, 21, 31 };
-    std::sort(rejected.begin(), rejected.end());
+    T rejectRet {{"x", 11}, {"y", 21}, {"z", 31}};
     assert(rejected == rejectRet);
 
     // every
-    assert(_::every(container, [](typename T::mapped_type v, typename T::key_type k) {
-        return v >= 2;
+    assert(_::every(container, [](typename T::value_type v) {
+        return v.second >= 2;
     }));
 
     // some
-    assert(_::some(container, [](typename T::mapped_type v, typename T::key_type k) {
-        return v > 30;
+    assert(_::some(container, [](typename T::value_type v) {
+        return v.second > 30;
     }));
 
     // contains
@@ -181,8 +179,8 @@ testBidirectionalIt(const string& name) {
     T container {{"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}, {"x", 10}, {"y", 20}, {"z", 30}};
 
     // reduce right
-    int sum = _::reduceRight(container, [](int memo, typename T::mapped_type v, typename T::key_type k) {
-        return memo + v; 
+    int sum = _::reduceRight(container, [](int memo, typename T::value_type v) {
+        return memo + v.second; 
     }, 100);
     assert(sum == 170);
 
