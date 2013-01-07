@@ -5,7 +5,9 @@ It supports collection (container) functions like underscorejs.
 
 RandomAccess > Bidirectional > Forward > Input	
 
-Supported Containers:
+Collections:
+* C-style array (R)
+* array (R)
 * string (R)
 * vector (R)
 * deque (R)
@@ -16,29 +18,23 @@ Supported Containers:
 * map & multimap (B)
 * unordered_map & unordered_multimap (F)
 
-Fixed-Length (R):
-* C-style array
-* array
-* initializer_list
-
-Not Supported Containers:
+Not Supported:
 * stack
 * queue & priority_queue
 
-
-Collection (Container) Functions (Requirement):
+Collection Functions (Requirement):
 * each (I)
 * map (I)
 * reduce (I)
 * reduceRight (B)
 * find (I)
-* filter (Non Fixed-Length)
+* filter (I)
 * *where*
-* reject (Non Fixed-Length)
+* reject (I)
 * every (I)
 * some (I)
 * contains (I)
-* *invoke*
+* invoke
 * *pluck*
 * *max*
 * *min*

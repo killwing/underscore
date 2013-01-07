@@ -7,24 +7,11 @@ namespace _ {
 
 namespace util {
 
-// simply check if has mapped_type
-template<typename T>
-class IsMappedContainer {
-private:
-    template<typename U>
-    static typename U::mapped_type check(int);
-
-    template<typename>
-    static void check(...);
-public:
-    static const bool value = !std::is_void<decltype(check<T>(0))>::value;
-};
-
 template<typename T>
 class HasPushBack {
 private:
     template<typename U>
-    static auto check(U* p) -> decltype(p->push_back(typename U::value_type()), int());
+    static auto check(U* p) -> decltype(p->push_back(std::declval<typename U::value_type>()), int());
 
     template<typename>
     static void check(...);
@@ -36,7 +23,7 @@ template<typename T>
 class HasInsert {
 private:
     template<typename U>
-    static auto check(U* p) -> decltype(p->insert(typename U::value_type()), int());
+    static auto check(U* p) -> decltype(p->insert(std::declval<typename U::value_type>()), int());
 
     template<typename>
     static void check(...);
@@ -48,7 +35,7 @@ template<typename T>
 class HasInsertAfter {
 private:
     template<typename U>
-    static auto check(U* p) -> decltype(p->insert_after(p->begin(), typename U::value_type()), int()); // begin is just for checking
+    static auto check(U* p) -> decltype(p->insert_after(p->begin(), std::declval<typename U::value_type>()), int()); // begin is just for checking
 
     template<typename>
     static void check(...);
@@ -59,25 +46,18 @@ public:
 template<typename T, typename U>
 typename std::enable_if<HasPushBack<T>::value, void>::type
 add(T& c, U&& v) {
-    static_assert(std::is_same<typename T::value_type, 
-        typename std::decay<U>::type>::value, "util::add - push_back type inconsistent");
     c.push_back(std::forward<U>(v));
 }
 
 template<typename T, typename U>
 typename std::enable_if<HasInsert<T>::value, void>::type
 add(T& c, U&& v) {
-    static_assert(std::is_same<typename T::value_type, 
-        typename std::decay<U>::type>::value, "util::add - insert type inconsistent");
     c.insert(std::forward<U>(v));
 }
 
 template<typename T, typename U>
 typename std::enable_if<HasInsertAfter<T>::value, void>::type
 add(T& c, U&& v) {
-    static_assert(std::is_same<typename T::value_type, 
-        typename std::decay<U>::type>::value, "util::add - insert_after type inconsistent");
-
     // get to the end of the list, which is O(N) and not fast at all
     auto before_end = c.before_begin();
     for (auto& _ : c) {
@@ -91,32 +71,52 @@ add(T& c, U&& v) {
 
 template<typename Collection, typename Function> void
 each(Collection& obj, Function iterator) {
-    std::for_each(std::begin(obj), std::end(obj), iterator);
+    for (auto& i : obj) {
+        iterator(i);
+    }
 }
 
 
-template<template<class T, class Allocator = std::allocator<T>>
+template<template<class ...T>
          class RetCollection = std::vector,
          typename Collection,
          typename Function> 
 auto
 map(const Collection& obj, Function iterator)
-    -> RetCollection<decltype(iterator(typename Collection::value_type()))> {
+    -> RetCollection<typename std::decay<decltype(iterator(std::declval<typename Collection::value_type>()))>::type> {
 
-    using R = decltype(iterator(typename Collection::value_type()));
+    using R = typename std::decay<decltype(iterator(std::declval<typename Collection::value_type>()))>::type;
     RetCollection<R> result;
-    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
-        util::add(result, iterator(v));
-    });
+    for (auto& i : obj) {
+        util::add(result, iterator(i));
+    }
+    return result;
+}
+ 
+template<template<class ...T>
+         class RetCollection = std::vector,
+         typename T,
+         size_t N,
+         typename Function> 
+auto
+map(T (&obj)[N], Function iterator)
+    -> RetCollection<typename std::decay<decltype(iterator(std::declval<T>()))>::type> {
+
+    using R = typename std::decay<decltype(iterator(std::declval<T>()))>::type;
+    RetCollection<R> result;
+    for (auto& i : obj) {
+        util::add(result, iterator(i));
+    }
     return result;
 }
 
 
-template<typename Collection, typename Function, typename Memo> Memo
+template<typename Collection, typename Function, typename Memo> 
+Memo
 reduce(const Collection& obj, Function iterator, Memo memo) {
-    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
-        memo = iterator(memo, v);
-    });
+    for (auto& i : obj) {
+        memo = iterator(memo, i);
+    }
     return memo;
 }
 
@@ -130,10 +130,19 @@ reduceRight(const Collection& obj, Function iterator, Memo memo) {
     return memo;
 }
 
+template<typename T, size_t N, typename Function, typename Memo>
+Memo
+reduceRight(T (&obj)[N], Function iterator, Memo memo) {
+    for (int i = N-1; i >= 0; --i) {
+        memo = iterator(memo, obj[i]);
+    }
+    return memo;
+}
+
 
 template<typename Collection, typename Function>
 auto
-find(const Collection& obj, Function iterator)
+find(Collection& obj, Function iterator)
     -> decltype(std::begin(obj)) {
     return std::find_if(std::begin(obj), std::end(obj), iterator);
 }
@@ -143,27 +152,24 @@ template<typename Collection, typename Function>
 Collection
 filter(const Collection& obj, Function iterator) {
     Collection result;
-    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
-        if (iterator(v)) {
-            util::add(result, v);
+    for (auto& i : obj) {
+        if (iterator(i)) {
+            util::add(result, i);
         }
-    });
+    }
     return result;
 }
 
 
-template<template<class T, class Allocator = std::allocator<T>>
-         class RetCollection = std::vector,
-         typename Collection,
-         typename Function>
+template<typename Collection, typename Function>
 Collection
 reject(const Collection& obj, Function iterator) {
     Collection result;
-    std::for_each(std::begin(obj), std::end(obj), [&](const typename Collection::value_type& v) {
-        if (!iterator(v)) {
-            util::add(result, v);
+    for (auto& i : obj) {
+        if (!iterator(i)) {
+            util::add(result, i);
         }
-    });
+    }
     return result;
 }
 
@@ -188,19 +194,40 @@ contains(const Collection& obj, const typename Collection::value_type& value) {
     return std::find(std::begin(obj), std::end(obj), value) != std::end(obj);
 }
 
-
-template<template<class T, class Allocator = std::allocator<T>>
-         class RetCollection = std::vector,
-         typename Collection,
-         typename Function> 
-auto
-invoke(const Collection& obj, Function method)
-    -> RetCollection<decltype((typename Collection::value_type()).*method())> {
-    return _::map(obj, [&](const typename Collection::value_type& v) {
-        return v.*method();
-    });
+template<typename T, size_t N> 
+bool
+contains(T (&obj)[N], const T& value) {
+    return std::find(std::begin(obj), std::end(obj), value) != std::end(obj);
 }
 
+
+template<typename Collection, typename Function, typename ...Argument> 
+auto
+invoke(Collection& obj, Function method, Argument... args)
+    -> typename std::enable_if<std::is_void<decltype((std::declval<typename Collection::value_type>().*method)(args...))>::value, void>::type {
+
+    for (auto& i : obj) {
+        (i.*method)(args...);
+    }
+}
+
+template<template<class ...T>
+         class RetCollection = std::vector,
+         typename Collection,
+         typename Function,
+         typename ...Argument> 
+auto
+invoke(Collection& obj, Function method, Argument... args)
+    -> typename std::enable_if<!std::is_void<decltype((std::declval<typename Collection::value_type>().*method)())>::value, 
+       RetCollection<typename std::decay<decltype((std::declval<typename Collection::value_type>().*method)())>::type>>::type {
+
+    using R = typename std::decay<decltype((std::declval<typename Collection::value_type>().*method)())>::type;
+    RetCollection<R> result;
+    for (auto&i : obj) {
+        util::add(result, (i.*method)(args...));
+    }
+    return result;
+}
 
 } // namespace _
 

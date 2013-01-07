@@ -1,8 +1,8 @@
 #include <iostream>
+#include <sstream>
 #include <cassert>
 
 #include <array>
-#include <initializer_list>
 #include <string>
 #include <vector>
 #include <deque>
@@ -16,229 +16,1616 @@
 #include "underscore.h"
 using namespace std;
 
+class Data {
+public:
+    Data(int i = 0) : i_(i) { }
+    void set(int i) { i_ = i; }
+    int get() const { return i_; }
 
-template<typename T>
-typename std::enable_if<!_::util::IsMappedContainer<T>::value, void>::type
-testInputIt(const string& name) {
-    // assume value could be number
-    T init { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-    T container = init; // reorder
+    bool operator < (const Data& d) const {
+        return i_ < d.i_;
+    }
 
-    // each
-    vector<int> eached;
-    _::each(container, [&](typename T::value_type v) {
-        eached.push_back(++v);
-    });
-    vector<int> eachRet { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-    assert(eached == eachRet);
+    bool operator == (const Data& d) const {
+        return i_ == d.i_;
+    }
+private:
+    int i_;
+};
 
-    // map
-    auto mapped = _::map(container, [](typename T::value_type v) {
-        return v * 2;
-    });
-    vector<int> mapRet { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 };
-    assert(mapped == mapRet);
+template<>
+class hash<Data> {
+public:
+    size_t operator()(const Data& d) const {
+        return std::hash<int>()(d.get());
+    }
+};
 
-    auto mappedList = _::map<list>(container, [](typename T::value_type v) { // use list as result container
-        return v * 2;
-    });
-    list<int> mapRetList { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 };
-    assert(mappedList == mapRetList);
+class Tracer {
+public:
+    Tracer(const string& info, bool supported = true) : info_(info), supported_(supported) {
+        cout << "test " << suit_ << " : " << info_ << " ";
+    }
+    ~Tracer() {
+        if (supported_) {
+            cout << "[ok]" << endl;
+        } else {
+            cout << "[not supported]" << endl;
+        }
+    }
 
-    // reduce
-    auto sum = _::reduce(container, [](int memo, typename T::value_type v) {
-        return memo + v; 
-    }, 100.0); // convertible
-    assert(sum == 145);
+    static string suit_;
 
-    // find
-    auto target = _::find(container, [](typename T::value_type v) {
-        return v == 5;
-    });
-    assert(*target == 5);
+private:
+    string info_;
+    bool supported_;
+};
+string Tracer::suit_;
 
-    // filter
-    auto filtered = _::filter(container, [](typename T::value_type v) {
-        return v > 5;
-    });
-    T filterRet { 6, 7, 8, 9 };
-    assert(filtered == filterRet);
-
-    // reject
-    auto rejected = _::reject(container, [](typename T::value_type v) {
-        return v <= 5;
-    });
-    T rejectRet { 6, 7, 8, 9 };
-    assert(rejected == rejectRet);
-
-    // every
-    assert(_::every(container, [](typename T::value_type v) {
-        return v >= 0;
-    }));
-
-    // some
-    assert(_::some(container, [](typename T::value_type v) {
-        return v > 8;
-    }));
-
-    // contains
-    assert(_::contains(container, 9));
-
-    cout << "[ok] testInputIt " << name << endl;
+string
+itoa(int i) {
+    ostringstream o;
+    o << i;
+    return o.str();
 }
 
-template<typename T>
-typename std::enable_if<!_::util::IsMappedContainer<T>::value, void>::type
-testBidirectionalIt(const string& name) {
-    // assume value could be number
-    T container { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+void 
+test_each() {
+    Tracer::suit_ = "each";
 
-    // reduce right
-    auto sum = _::reduceRight(container, [](int memo, typename T::value_type v) {
-        return memo + v; 
-    }, 100);
-    assert(sum == 145);
+    {
+        Tracer t("C-style array");
+        int data[]   { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        int expect[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        _::each(data, [](int& v) {
+            ++v;
+        });
+        for (int i = 0; i != 10; ++i) {
+            assert(data[i] == expect[i]);
+        }
+    }
 
-    cout << "[ok] testBidirectionalIt " << name << endl;
+    {
+        Tracer t("array");
+        array<int, 10> data   = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        array<int, 10> expect = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        _::each(data, [](int& v) {
+            ++v;
+        });
+        assert(data == expect);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        string expect("HELLO WORLD!");
+        _::each(data, [](char& v) {
+            if (v >= 'a' && v <= 'z') {
+                v -= 32;
+            }
+        });
+        assert(data == expect);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data   { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        vector<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        _::each(data, [](int& v) {
+            ++v;
+        });
+        assert(data == expect);
+    }
+    
+    {
+        Tracer t("deque");
+        deque<int> data   { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        deque<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        _::each(data, [](int& v) {
+            ++v;
+        });
+        assert(data == expect);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data   { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        list<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        _::each(data, [](int& v) {
+            ++v;
+        });
+        assert(data == expect);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data   { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        forward_list<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        _::each(data, [](int& v) {
+            ++v;
+        });
+        assert(data == expect);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        vector<int> result;
+        vector<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        _::each(data, [&](int v) {
+            result.push_back(++v);
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        vector<int> result;
+        vector<int> expect { 1, 1, 3, 3, 5, 5, 7, 7, 9, 9 };
+        _::each(data, [&](int v) {
+            result.push_back(++v);
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        vector<int> result;
+        vector<int> expect { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+        _::each(data, [&](int v) {
+            result.push_back(++v);
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        vector<int> result;
+        vector<int> expect { 9, 9, 7, 7, 5, 5, 3, 3, 1, 1 };
+        _::each(data, [&](int v) {
+            result.push_back(++v);
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data   { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        map<int, string> expect { {1, "aa"}, {2, "bb"}, {3, "cc"}, {4, "dd"}, {10, "xx"}, {20, "yy"}, {30, "zz"} };
+        _::each(data, [](pair<const int, string>& v) {
+            v.second += v.second;
+        });
+        assert(data == expect);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data   { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        multimap<int, string> expect { {2, "aa"}, {2, "bb"}, {4, "cc"}, {4, "dd"}, {10, "xx"}, {10, "yy"} };
+        _::each(data, [](pair<const int, string>& v) {
+            v.second += v.second;
+        });
+        assert(data == expect);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data   { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        unordered_map<int, string> expect { {1, "aa"}, {2, "bb"}, {3, "cc"}, {4, "dd"}, {10, "xx"}, {20, "yy"}, {30, "zz"} };
+        _::each(data, [](pair<const int, string>& v) {
+            v.second += v.second;
+        });
+        assert(data == expect);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data   { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        unordered_multimap<int, string> expect { {2, "aa"}, {2, "bb"}, {4, "cc"}, {4, "dd"}, {10, "xx"}, {10, "yy"} };
+        _::each(data, [](pair<const int, string>& v) {
+            v.second += v.second;
+        });
+        assert(data == expect);
+    }
 }
 
-template<typename T>
-typename std::enable_if<_::util::IsMappedContainer<T>::value, void>::type
-testInputIt(const string& name) {
-    // assume key is string and value is number
-    T container {{"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}, {"x", 10}, {"y", 20}, {"z", 30}};
+void 
+test_map() {
+    Tracer::suit_ = "map";
 
-    // each
-    _::each(container, [](typename T::value_type& v) {
-        ++v.second;
-    });
-    T eachRet {{"a", 2}, {"b", 3}, {"c", 4}, {"d", 5}, {"x", 11}, {"y", 21}, {"z", 31}};
-    assert(container == eachRet);
+    {
+        Tracer t("C-style array");
+        int data[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        vector<string> expect { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        vector<string> result = _::map(data, [](int v) {
+            return itoa(v);
+        });
+        assert(result == expect);
+    }
 
-    // map
-    auto mapped = _::map(container, [](typename T::value_type v) {
-        return v.second * 2;
-    });
-    vector<int> mapRet { 4, 6, 8, 10, 22, 42, 62 };
-    sort(mapped.begin(), mapped.end()); // need sort to check
-    assert(mapped == mapRet);
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        vector<string> expect { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        vector<string> result = _::map(data, [](int v) {
+            return itoa(v);
+        });
+        assert(result == expect);
+    }
 
-    auto mappedDq = _::map<deque>(container, [](typename T::value_type v) {
-        return v.second * 2;
-    });
-    deque<int> mapRetDq { 4, 6, 8, 10, 22, 42, 62 };
-    sort(mappedDq.begin(), mappedDq.end());
-    assert(mappedDq == mapRetDq);
+    {
+        Tracer t("string");
+        string data("hello world!");
+        string expect("HELLO WORLD!");
+        string result = _::map<basic_string>(data, [](char v) {
+            return v >= 'a' && v <= 'z' ? static_cast<char>(v - 32) : v;
+        });
+        assert(result == expect);
+    }
 
-    // reduce
-    auto sum = _::reduce(container, [](int memo, typename T::value_type v) {
-        return memo + v.second; 
-    }, 100.0);
-    assert(sum == 177);
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        vector<string> expect { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        vector<string> result = _::map(data, [](int v) {
+            return itoa(v);
+        });
+        assert(result == expect);
+    }
+    
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        deque<string> expect { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        deque<string> result = _::map<deque>(data, [](int v) {
+            return itoa(v);
+        });
+        assert(result == expect);
+    }
 
-    // find
-    auto target = _::find(container, [](typename T::value_type v) {
-        return v.first == "x";
-    });
-    assert(target->second == 11);
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        list<string> expect { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        list<string> result = _::map<list>(data, [](int v) {
+            return itoa(v);
+        });
+        assert(result == expect);
+    }
 
-    // filter
-    auto filtered = _::filter<T>(container, [](typename T::value_type v) {  // move the result
-        return v.second > 5;
-    });
-    T filterRet {{"x", 11}, {"y", 21}, {"z", 31}};
-    assert(filtered == filterRet);
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        forward_list<string> expect { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        forward_list<string> result = _::map<forward_list>(data, [](int v) {
+            return itoa(v);
+        });
+        assert(result == expect);
+    }
 
-    // reject
-    auto rejected = _::reject(container, [](typename T::value_type v) {
-        return v.second <= 5;
-    });
-    T rejectRet {{"x", 11}, {"y", 21}, {"z", 31}};
-    assert(rejected == rejectRet);
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        set<string> expect { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        set<string> result = _::map<set>(data, [](int v) {
+            return itoa(v);
+        });
+        assert(result == expect);
+    }
 
-    // every
-    assert(_::every(container, [](typename T::value_type v) {
-        return v.second >= 2;
-    }));
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        multiset<string> expect { "0", "0", "2", "2", "4", "4", "6", "6", "8", "8" };
+        multiset<string> result = _::map<multiset>(data, [](int v) {
+            return itoa(v);
+        });
+        assert(result == expect);
+    }
 
-    // some
-    assert(_::some(container, [](typename T::value_type v) {
-        return v.second > 30;
-    }));
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        unordered_set<string> expect { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        unordered_set<string> result = _::map<unordered_set>(data, [](int v) {
+            return itoa(v);
+        });
+        assert(result == expect);
+    }
 
-    // contains
-    assert(_::contains(container, typename T::value_type("c", 4)));
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        unordered_multiset<string> expect { "0", "0", "2", "2", "4", "4", "6", "6", "8", "8" };
+        unordered_multiset<string> result = _::map<unordered_multiset>(data, [](int v) {
+            return itoa(v);
+        });
+        assert(result == expect);
+    }
 
-    cout << "[ok] testInputIt " << name << endl;
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        vector<string> expect { "a", "b", "c", "d", "x", "y", "z" };
+        vector<string> result = _::map(data, [](const pair<const int, string>& v) {
+            return v.second;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        vector<string> expect { "a", "b", "c", "d", "x", "y"};
+        vector<string> result = _::map(data, [](const pair<const int, string>& v) {
+            return v.second;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        list<string> expect { "z", "y", "x", "d", "c", "b", "a" };
+        list<string> result = _::map<list>(data, [](const pair<const int, string>& v) {
+            return v.second;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        list<string> expect { "x", "y", "c", "d", "a", "b" };
+        list<string> result = _::map<list>(data, [](const pair<const int, string>& v) {
+            return v.second;
+        });
+        assert(result == expect);
+    }
 }
 
-template<typename T>
-typename std::enable_if<_::util::IsMappedContainer<T>::value, void>::type
-testBidirectionalIt(const string& name) {
-    // assume key is string and value is number
-    T container {{"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}, {"x", 10}, {"y", 20}, {"z", 30}};
+void
+test_reduce() {
+    Tracer::suit_ = "reduce";
 
-    // reduce right
-    int sum = _::reduceRight(container, [](int memo, typename T::value_type v) {
-        return memo + v.second; 
-    }, 100);
-    assert(sum == 170);
+    {
+        Tracer t("C-style array");
+        int data[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        int result = _::reduce(data, [](int memo, int v) {
+            return memo + v;
+        }, 100.0);
+        assert(result == 145);
+    }
 
-    cout << "[ok] testBidirectionalIt " << name << endl;
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        int result = _::reduce(data, [](int memo, int v) {
+            return memo + v;
+        }, 100);
+        assert(result == 145);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        string expect("HELLO WORLD!");
+        string result = _::reduce(data, [](string memo, char v) {
+            return memo + string(1, v >= 'a' && v <= 'z' ? v - 32 : v);
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("vector");
+        vector<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        string expect = "0123456789";
+        string result = _::reduce(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+    
+    {
+        Tracer t("deque");
+        deque<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        string expect = "0123456789";
+        string result = _::reduce(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("list");
+        list<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        string expect = "0123456789";
+        string result = _::reduce(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        string expect = "0123456789";
+        string result = _::reduce(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("set");
+        set<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        string expect = "0123456789";
+        string result = _::reduce(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<string> data { "0", "0", "2", "2", "4", "4", "6", "6", "8", "8" };
+        string expect = "0022446688";
+        string result = _::reduce(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        int result = _::reduce(data, [](int memo, int v) {
+            return memo + v;
+        }, 100);
+        assert(result == 145);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        int result = _::reduce(data, [](int memo, int v) {
+            return memo + v;
+        }, 100);
+        assert(result == 140);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        string expect = "abcdxyz";
+        string result = _::reduce(data, [](string memo, const pair<const int, string>& v) {
+            return memo + v.second;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        string expect = "abcdxy";
+        string result = _::reduce(data, [](string memo, const pair<const int, string>& v) {
+            return memo + v.second;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        int result = _::reduce(data, [](int memo, const pair<const int, string>& v) {
+            return memo + v.first;
+        }, 0);
+        assert(result == 70);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        int result = _::reduce(data, [](int memo, const pair<const int, string>& v) {
+            return memo + v.first;
+        }, 0);
+        assert(result == 32);
+    }
 }
 
-template<typename T> void
-testFixedLength(const string& name) {
-    // assume value could be number
-    T container = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+void
+test_reduceRight() {
+    Tracer::suit_ = "reduceRight";
 
-    // each
-    int sum = 0;
-    _::each(container, [&](int v) {
-        sum += v;
-    });
-    assert(sum == 45); // just check sum
+    {
+        Tracer t("C-style array");
+        int data[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        int result = _::reduceRight(data, [](int memo, int v) {
+            return memo + v;
+        }, 100.0);
+        assert(result == 145);
+    }
 
-    // every
-    assert(_::every(container, [](int v) {
-        return v >= 0;
-    }));
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        int result = _::reduceRight(data, [](int memo, int v) {
+            return memo + v;
+        }, 100);
+        assert(result == 145);
+    }
 
-    // some
-    assert(_::some(container, [](int v) {
-        return v > 8;
-    }));
+    {
+        Tracer t("string");
+        string data("hello world!");
+        string expect("!DLROW OLLEH");
+        string result = _::reduceRight(data, [](string memo, char v) {
+            return memo + string(1, v >= 'a' && v <= 'z' ? v - 32 : v);
+        }, string());
+        assert(result == expect);
+    }
 
-    cout << "[ok] test " << name << endl;
+    {
+        Tracer t("vector");
+        vector<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        string expect = "9876543210";
+        string result = _::reduceRight(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+    
+    {
+        Tracer t("deque");
+        deque<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        string expect = "9876543210";
+        string result = _::reduceRight(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("list");
+        list<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        string expect = "9876543210";
+        string result = _::reduceRight(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("forward_list", false);
+    }
+
+    {
+        Tracer t("set");
+        set<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        string expect = "9876543210";
+        string result = _::reduceRight(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<string> data { "0", "0", "2", "2", "4", "4", "6", "6", "8", "8" };
+        string expect = "8866442200";
+        string result = _::reduceRight(data, [](string memo, const string& v) {
+            return memo + v;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_set", false);
+    }
+
+    {
+        Tracer t("unordered_multiset", false);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        string expect = "zyxdcba";
+        string result = _::reduceRight(data, [](string memo, const pair<const int, string>& v) {
+            return memo + v.second;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        string expect = "yxdcba";
+        string result = _::reduceRight(data, [](string memo, const pair<const int, string>& v) {
+            return memo + v.second;
+        }, string());
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_map", false);
+    }
+
+    {
+        Tracer t("unordered_multimap", false);
+    }
+}
+
+void
+test_find() {
+    Tracer::suit_ = "find";
+
+    {
+        Tracer t("C-style array");
+        int data[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        int* result = _::find(data, [](int v) {
+            return v % 2 == 0;
+        });
+        assert(*result == 2);
+
+        result = _::find(data, [](int v) {
+            return v > 9;
+        });
+        assert(result == end(data));
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::find(data, [](int v) {
+            return v > 5;
+        });
+        assert(*result == 6);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        auto result = _::find(data, [](char v) {
+            return v == 'w';
+        });
+        assert(*result == 'w');
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::find(data, [](int v) {
+            return v > 5;
+        });
+        assert(*result == 6);
+    }
+    
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::find(data, [](int v) {
+            return v > 5;
+        });
+        assert(*result == 6);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::find(data, [](int v) {
+            return v > 5;
+        });
+        assert(*result == 6);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::find(data, [](int v) {
+            return v > 5;
+        });
+        assert(*result == 6);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::find(data, [](int v) {
+            return v > 5;
+        });
+        assert(*result == 6);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::find(data, [](int v) {
+            return v > 5;
+        });
+        assert(*result == 6);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::find(data, [](int v) {
+            return v == 5;
+        });
+        assert(*result == 5);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::find(data, [](int v) {
+            return v == 2;
+        });
+        assert(*result == 2);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::find(data, [](const pair<const int, string>& v) {
+            return v.second == "x";
+        });
+        assert(result->first == 10);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::find(data, [](const pair<const int, string>& v) {
+            return v.second == "x";
+        });
+        assert(result->first == 10);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::find(data, [](const pair<const int, string>& v) {
+            return v.second == "x";
+        });
+        assert(result->first == 10);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::find(data, [](const pair<const int, string>& v) {
+            return v.second == "x";
+        });
+        assert(result->first == 10);
+    }
+}
+
+void
+test_filter() {
+    Tracer::suit_ = "filter";
+
+    {
+        Tracer t("C-style array", false);
+    }
+
+    {
+        Tracer t("array", false);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        string expect("lloworl");
+        string result = _::filter(data, [](char v) {
+            return v > 'h';
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        vector<int> expect { 6, 7, 8, 9 };
+        vector<int> result = _::filter(data, [](int v) {
+            return v > 5;
+        });
+        assert(result == expect);
+    }
+    
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        deque<int> expect { 6, 7, 8, 9 };
+        deque<int> result = _::filter(data, [](int v) {
+            return v > 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        list<int> expect { 6, 7, 8, 9 };
+        list<int> result = _::filter(data, [](int v) {
+            return v > 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        forward_list<int> expect { 6, 7, 8, 9 };
+        forward_list<int> result = _::filter(data, [](int v) {
+            return v > 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        set<int> expect { 6, 7, 8, 9 };
+        set<int> result = _::filter(data, [](int v) {
+            return v > 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        multiset<int> expect { 6, 6, 8, 8 };
+        multiset<int> result = _::filter(data, [](int v) {
+            return v > 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        unordered_set<int> expect { 6, 7, 8, 9 };
+        unordered_set<int> result = _::filter(data, [](int v) {
+            return v > 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        unordered_multiset<int> expect { 6, 6, 8, 8 };
+        unordered_multiset<int> result = _::filter(data, [](int v) {
+            return v > 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        map<int, string> expect { {10, "x"}, {20, "y"}, {30, "z"} };
+        map<int, string> result = _::filter(data, [](const pair<const int, string>& v) {
+            return v.first >= 10;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        multimap<int, string> expect { {10, "x"}, {10, "y"} };
+        multimap<int, string> result = _::filter(data, [](const pair<const int, string>& v) {
+            return v.first >= 10;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        unordered_map<int, string> expect { {10, "x"}, {20, "y"}, {30, "z"} };
+        unordered_map<int, string> result = _::filter(data, [](const pair<const int, string>& v) {
+            return v.first >= 10;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        unordered_multimap<int, string> expect { {10, "x"}, {10, "y"} };
+        unordered_multimap<int, string> result = _::filter(data, [](const pair<const int, string>& v) {
+            return v.first >= 10;
+        });
+        assert(result == expect);
+    }
+}
+
+void
+test_reject() {
+    Tracer::suit_ = "reject";
+
+    {
+        Tracer t("C-style array", false);
+    }
+
+    {
+        Tracer t("array", false);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        string expect("lloworl");
+        string result = _::reject(data, [](char v) {
+            return v <= 'h';
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        vector<int> expect { 6, 7, 8, 9 };
+        vector<int> result = _::reject(data, [](int v) {
+            return v <= 5;
+        });
+        assert(result == expect);
+    }
+    
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        deque<int> expect { 6, 7, 8, 9 };
+        deque<int> result = _::reject(data, [](int v) {
+            return v <= 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        list<int> expect { 6, 7, 8, 9 };
+        list<int> result = _::reject(data, [](int v) {
+            return v <= 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        forward_list<int> expect { 6, 7, 8, 9 };
+        forward_list<int> result = _::reject(data, [](int v) {
+            return v <= 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        set<int> expect { 6, 7, 8, 9 };
+        set<int> result = _::reject(data, [](int v) {
+            return v <= 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        multiset<int> expect { 6, 6, 8, 8 };
+        multiset<int> result = _::reject(data, [](int v) {
+            return v <= 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        unordered_set<int> expect { 6, 7, 8, 9 };
+        unordered_set<int> result = _::reject(data, [](int v) {
+            return v <= 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        unordered_multiset<int> expect { 6, 6, 8, 8 };
+        unordered_multiset<int> result = _::reject(data, [](int v) {
+            return v <= 5;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        map<int, string> expect { {10, "x"}, {20, "y"}, {30, "z"} };
+        map<int, string> result = _::reject(data, [](const pair<const int, string>& v) {
+            return v.first < 10;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        multimap<int, string> expect { {10, "x"}, {10, "y"} };
+        multimap<int, string> result = _::reject(data, [](const pair<const int, string>& v) {
+            return v.first < 10;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        unordered_map<int, string> expect { {10, "x"}, {20, "y"}, {30, "z"} };
+        unordered_map<int, string> result = _::reject(data, [](const pair<const int, string>& v) {
+            return v.first < 10;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        unordered_multimap<int, string> expect { {10, "x"}, {10, "y"} };
+        unordered_multimap<int, string> result = _::reject(data, [](const pair<const int, string>& v) {
+            return v.first < 10;
+        });
+        assert(result == expect);
+    }
+}
+
+void
+test_every() {
+    Tracer::suit_ = "every";
+
+    {
+        Tracer t("C-style array");
+        int data[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::every(data, [](int v) {
+            return v > 0;
+        });
+        assert(result);
+
+        result = _::every(data, [](int v) {
+            return v > 1;
+        });
+        assert(!result);
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::every(data, [](int v) {
+            return v >= 0;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        auto result = _::every(data, [](char v) {
+            return v >= ' ';
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::every(data, [](int v) {
+            return v >= 0;
+        });
+        assert(result);
+    }
+    
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::every(data, [](int v) {
+            return v >= 0;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::every(data, [](int v) {
+            return v >= 0;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::every(data, [](int v) {
+            return v >= 0;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::every(data, [](int v) {
+            return v >= 0;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::every(data, [](int v) {
+            return v >= 0;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::every(data, [](int v) {
+            return v >= 0;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::every(data, [](int v) {
+            return v >= 0;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::every(data, [](const pair<const int, string>& v) {
+            return v.second >= "a";
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::every(data, [](const pair<const int, string>& v) {
+            return v.second >= "a";
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::every(data, [](const pair<const int, string>& v) {
+            return v.second >= "a";
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::every(data, [](const pair<const int, string>& v) {
+            return v.second >= "a";
+        });
+        assert(result);
+    }
+}
+
+void
+test_some() {
+    Tracer::suit_ = "some";
+
+    {
+        Tracer t("C-style array");
+        int data[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::some(data, [](int v) {
+            return v > 0;
+        });
+        assert(result);
+
+        result = _::some(data, [](int v) {
+            return v > 9;
+        });
+        assert(!result);
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::some(data, [](int v) {
+            return v > 5;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        auto result = _::some(data, [](char v) {
+            return v == 'w';
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::some(data, [](int v) {
+            return v > 5;
+        });
+        assert(result);
+    }
+    
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::some(data, [](int v) {
+            return v > 5;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::some(data, [](int v) {
+            return v > 5;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::some(data, [](int v) {
+            return v > 5;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::some(data, [](int v) {
+            return v > 5;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::some(data, [](int v) {
+            return v > 5;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::some(data, [](int v) {
+            return v == 5;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::some(data, [](int v) {
+            return v == 2;
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::some(data, [](const pair<const int, string>& v) {
+            return v.second == "x";
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::some(data, [](const pair<const int, string>& v) {
+            return v.second == "x";
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::some(data, [](const pair<const int, string>& v) {
+            return v.second == "x";
+        });
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::some(data, [](const pair<const int, string>& v) {
+            return v.second == "x";
+        });
+        assert(result);
+    }
+}
+
+void
+test_contains() {
+    Tracer::suit_ = "contains";
+
+    {
+        Tracer t("C-style array");
+        int data[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::contains(data, 3);
+        assert(result);
+
+        result = _::contains(data, 0);
+        assert(!result);
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::contains(data, 3);
+        assert(result);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        auto result = _::contains(data, 'r');
+        assert(result);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::contains(data, 3);
+        assert(result);
+    }
+    
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::contains(data, 3);
+        assert(result);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::contains(data, 3);
+        assert(result);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::contains(data, 3);
+        assert(result);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::contains(data, 3);
+        assert(result);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::contains(data, 4);
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::contains(data, 3);
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::contains(data, 4);
+        assert(result);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::contains(data, pair<int, string>(4, "d"));
+        assert(result);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::contains(data, pair<int, string>(4, "d"));
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::contains(data, pair<int, string>(4, "d"));
+        assert(result);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::contains(data, pair<int, string>(4, "d"));
+        assert(result);
+    }
+}
+
+void
+test_invoke() {
+    Tracer::suit_ = "invoke";
+
+    {
+        Tracer t("C-style array");
+        Data data[10];
+        //_::invoke(data, &Data::set, 5);
+        //auto result = _::invoke(data, &Data::get);
+        //for (auto& i : result) {
+        //    assert(i == 5);
+        //}
+    }
+
+    {
+        Tracer t("array");
+        array<Data, 10> data;
+        _::invoke(data, &Data::set, 5);
+        auto result = _::invoke(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 5);
+        }
+    }
+
+    {
+        Tracer t("string", false);
+    }
+
+    {
+        Tracer t("vector");
+        vector<Data> data(10);
+        _::invoke(data, &Data::set, 5);
+        auto result = _::invoke(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 5);
+        }
+    }
+    
+    {
+        Tracer t("deque");
+        deque<Data> data(10);
+        _::invoke(data, &Data::set, 5);
+        auto result = _::invoke(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 5);
+        }
+    }
+
+    {
+        Tracer t("list");
+        list<Data> data(10);
+        _::invoke(data, &Data::set, 5);
+        auto result = _::invoke(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 5);
+        }
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<Data> data(10);
+        _::invoke(data, &Data::set, 5);
+        auto result = _::invoke(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 5);
+        }
+    }
+
+    {
+        Tracer t("set");
+        set<Data> data { Data(), Data(), Data(), Data() };
+        auto result = _::invoke(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 0);
+        }
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<Data> data { Data(1), Data(1), Data(1), Data(1) };
+        auto result = _::invoke(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 1);
+        }
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<Data> data { Data(2), Data(2), Data(2), Data(2) };
+        auto result = _::invoke(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 2);
+        }
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<Data> data { Data(3), Data(3), Data(3), Data(3) };
+        auto result = _::invoke(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 3);
+        }
+    }
+
+    {
+        Tracer t("map", false);
+    }
+
+    {
+        Tracer t("multimap", false);
+    }
+
+    {
+        Tracer t("unordered_map", false);
+    }
+
+    {
+        Tracer t("unordered_multimap", false);
+    }
 }
 
 int main() {
-    testInputIt<string>("string");
-    testInputIt<vector<int>>("vector");
-    testInputIt<deque<int>>("deque");
-    testInputIt<list<int>>("list");
-    testInputIt<forward_list<int>>("forward_list");
-    testInputIt<set<int>>("set");
-    testInputIt<multiset<int>>("multiset");
-    testInputIt<unordered_set<int>>("unordered_set");
-    testInputIt<unordered_multiset<int>>("unordered_multiset");
-    testInputIt<map<string, int>>("map");
-    testInputIt<multimap<string, int>>("multimap");
-    testInputIt<unordered_map<string, int>>("unordered_map");
-    testInputIt<unordered_multimap<string, int>>("unordered_multimap");
-
-    testBidirectionalIt<string>("string");
-    testBidirectionalIt<vector<int>>("vector");
-    testBidirectionalIt<deque<int>>("deque");
-    testBidirectionalIt<list<int>>("list");
-    testBidirectionalIt<set<int>>("set");
-    testBidirectionalIt<multiset<int>>("multiset");
-    testBidirectionalIt<map<string, int>>("map");
-    testBidirectionalIt<multimap<string, int>>("multimap");
-
-    testFixedLength<int [10]>("c_array");
-    testFixedLength<array<int, 10>>("array");
-    testFixedLength<initializer_list<int>>("initializer_list");
+    test_each();
+    test_map();
+    test_reduce();
+    test_reduceRight();
+    test_find();
+    test_filter();
+    test_reject();
+    test_every();
+    test_some();
+    test_contains();
+    test_invoke();
 
     cout << "All tests passed." << endl;
     return 0;
