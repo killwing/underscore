@@ -69,7 +69,7 @@ itoa(int i) {
     return o.str();
 }
 
-void 
+void
 test_each() {
     Tracer::suit_ = "each";
 
@@ -116,7 +116,7 @@ test_each() {
         });
         assert(data == expect);
     }
-    
+
     {
         Tracer t("deque");
         deque<int> data   { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -232,7 +232,7 @@ test_each() {
     }
 }
 
-void 
+void
 test_map() {
     Tracer::suit_ = "map";
 
@@ -275,7 +275,7 @@ test_map() {
         });
         assert(result == expect);
     }
-    
+
     {
         Tracer t("deque");
         deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -428,7 +428,7 @@ test_reduce() {
         }, string());
         assert(result == expect);
     }
-    
+
     {
         Tracer t("deque");
         deque<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
@@ -577,7 +577,7 @@ test_reduceRight() {
         }, string());
         assert(result == expect);
     }
-    
+
     {
         Tracer t("deque");
         deque<string> data { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
@@ -703,7 +703,7 @@ test_find() {
         });
         assert(*result == 6);
     }
-    
+
     {
         Tracer t("deque");
         deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -835,7 +835,7 @@ test_filter() {
         });
         assert(result == expect);
     }
-    
+
     {
         Tracer t("deque");
         deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -978,7 +978,7 @@ test_reject() {
         });
         assert(result == expect);
     }
-    
+
     {
         Tracer t("deque");
         deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -1134,7 +1134,7 @@ test_every() {
         });
         assert(result);
     }
-    
+
     {
         Tracer t("deque");
         deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -1279,7 +1279,7 @@ test_some() {
         });
         assert(result);
     }
-    
+
     {
         Tracer t("deque");
         deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -1414,7 +1414,7 @@ test_contains() {
         auto result = _::contains(data, 3);
         assert(result);
     }
-    
+
     {
         Tracer t("deque");
         deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -1467,28 +1467,28 @@ test_contains() {
     {
         Tracer t("map");
         map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
-        auto result = _::contains(data, pair<int, string>(4, "d"));
+        auto result = _::contains(data, pair<const int, string>(4, "d"));
         assert(result);
     }
 
     {
         Tracer t("multimap");
         multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
-        auto result = _::contains(data, pair<int, string>(4, "d"));
+        auto result = _::contains(data, pair<const int, string>(4, "d"));
         assert(result);
     }
 
     {
         Tracer t("unordered_map");
         unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
-        auto result = _::contains(data, pair<int, string>(4, "d"));
+        auto result = _::contains(data, pair<const int, string>(4, "d"));
         assert(result);
     }
 
     {
         Tracer t("unordered_multimap");
         unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
-        auto result = _::contains(data, pair<int, string>(4, "d"));
+        auto result = _::contains(data, pair<const int, string>(4, "d"));
         assert(result);
     }
 }
@@ -1500,11 +1500,11 @@ test_invoke() {
     {
         Tracer t("C-style array");
         Data data[10];
-        //_::invoke(data, &Data::set, 5);
-        //auto result = _::invoke(data, &Data::get);
-        //for (auto& i : result) {
-        //    assert(i == 5);
-        //}
+        _::invoke(data, &Data::set, 5);
+        auto result = _::invoke(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 5);
+        }
     }
 
     {
@@ -1530,7 +1530,7 @@ test_invoke() {
             assert(i == 5);
         }
     }
-    
+
     {
         Tracer t("deque");
         deque<Data> data(10);
@@ -1631,4 +1631,4 @@ int main() {
     return 0;
 }
 
-    
+
