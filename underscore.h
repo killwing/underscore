@@ -185,7 +185,7 @@ invoke(Collection&& obj, Function method, Argument&&... args)
     -> typename std::enable_if<std::is_void<decltype(((*std::begin(obj)).*method)(args...))>::value, void>::type {
 
     for (auto& i : obj) {
-        (i.*method)(std::forward<Argument...>(args...));
+        (i.*method)(std::forward<Argument>(args)...);
     }
 }
 
@@ -202,7 +202,7 @@ invoke(Collection&& obj, Function method, Argument&&... args)
     using R = typename std::decay<decltype(((*std::begin(obj)).*method)(args...))>::type;
     RetCollection<R> result;
     for (auto&i : obj) {
-        util::add(result, (i.*method)(args...));
+        util::add(result, (i.*method)(std::forward<Argument>(args)...));
     }
     return result;
 }
