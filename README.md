@@ -1,6 +1,6 @@
 Underscore
 ==========
-An C++11 library inspired by [underscore.js](http://underscorejs.org)  
+A C++11 library inspired by [underscore.js](http://underscorejs.org)  
 It supports collection (container) functions like underscorejs.
 
 RandomAccess > Bidirectional > Forward > Input	
@@ -23,27 +23,27 @@ Not Supported:
 * queue & priority_queue
 
 Collection Functions (Requirement):
-* each (I)
-* map (I)
-* reduce (I)
-* reduceRight (B)
-* find (I)
-* filter (I)
-* *where*
-* reject (I)
-* every (I)
-* some (I)
-* contains (I)
-* invoke
-* *pluck*
-* *max*
-* *min*
-* *sortBy* (R)
-* *groupBy*
-* *countBy*
-* *shuffle*
-* *toArray*
-* *size*
+* [x] each (I)
+* [x] map (I)
+* [x] reduce (I)
+* [x] reduceRight (B)
+* [x] find (I)
+* [x] filter (I)
+* [ ] *where*
+* [x] reject (I)
+* [x] every (I)
+* [x] some (I)
+* [x] contains (I)
+* [x] invoke (I)
+* [ ] *pluck* (I)
+* [ ] *max*
+* [ ] *min*
+* [ ] *sortBy* (R)
+* [ ] *groupBy*
+* [ ] *countBy*
+* [ ] *shuffle*
+* [ ] *toArray*
+* [ ] *size*
 
 **This library is still under development.**
 
