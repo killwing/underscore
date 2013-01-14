@@ -179,7 +179,7 @@ contains(Collection&& obj, U&& value) {
 }
 
 
-template<typename Collection, typename Function, typename ...Argument>
+template<typename Collection, typename Function, typename... Argument>
 auto
 invoke(Collection&& obj, Function method, Argument&&... args)
     -> typename std::enable_if<std::is_void<decltype(((*std::begin(obj)).*method)(args...))>::value, void>::type {
@@ -193,7 +193,7 @@ template<template<class ...T>
          class RetCollection = std::vector,
          typename Collection,
          typename Function,
-         typename ...Argument>
+         typename... Argument>
 auto
 invoke(Collection&& obj, Function method, Argument&&... args)
     -> typename std::enable_if<!std::is_void<decltype(((*std::begin(obj)).*method)(args...))>::value,
@@ -203,6 +203,23 @@ invoke(Collection&& obj, Function method, Argument&&... args)
     RetCollection<R> result;
     for (auto&i : obj) {
         util::add(result, (i.*method)(std::forward<Argument>(args)...));
+    }
+    return result;
+}
+
+
+template<template<class ...T>
+         class RetCollection = std::vector,
+         typename Collection,
+         typename Function>
+auto
+pluck(Collection&& obj, Function member)
+    -> RetCollection<typename std::decay<decltype(((*std::begin(obj)).*member))>::type> {
+
+    using R = typename std::decay<decltype(((*std::begin(obj)).*member))>::type;
+    RetCollection<R> result;
+    for (auto&i : obj) {
+        util::add(result, i.*member);
     }
     return result;
 }

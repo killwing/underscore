@@ -29,7 +29,7 @@ public:
     bool operator == (const Data& d) const {
         return i_ == d.i_;
     }
-private:
+
     int i_;
 };
 
@@ -1535,7 +1535,7 @@ test_invoke() {
         Tracer t("deque");
         deque<Data> data(10);
         _::invoke(data, &Data::set, 5);
-        auto result = _::invoke(data, &Data::get);
+        auto result = _::invoke<deque>(data, &Data::get);
         for (auto& i : result) {
             assert(i == 5);
         }
@@ -1545,7 +1545,7 @@ test_invoke() {
         Tracer t("list");
         list<Data> data(10);
         _::invoke(data, &Data::set, 5);
-        auto result = _::invoke(data, &Data::get);
+        auto result = _::invoke<list>(data, &Data::get);
         for (auto& i : result) {
             assert(i == 5);
         }
@@ -1555,7 +1555,7 @@ test_invoke() {
         Tracer t("forward_list");
         forward_list<Data> data(10);
         _::invoke(data, &Data::set, 5);
-        auto result = _::invoke(data, &Data::get);
+        auto result = _::invoke<forward_list>(data, &Data::get);
         for (auto& i : result) {
             assert(i == 5);
         }
@@ -1564,7 +1564,7 @@ test_invoke() {
     {
         Tracer t("set");
         set<Data> data { Data(), Data(), Data(), Data() };
-        auto result = _::invoke(data, &Data::get);
+        auto result = _::invoke<set>(data, &Data::get);
         for (auto& i : result) {
             assert(i == 0);
         }
@@ -1573,7 +1573,7 @@ test_invoke() {
     {
         Tracer t("multiset");
         multiset<Data> data { Data(1), Data(1), Data(1), Data(1) };
-        auto result = _::invoke(data, &Data::get);
+        auto result = _::invoke<multiset>(data, &Data::get);
         for (auto& i : result) {
             assert(i == 1);
         }
@@ -1582,7 +1582,7 @@ test_invoke() {
     {
         Tracer t("unordered_set");
         unordered_set<Data> data { Data(2), Data(2), Data(2), Data(2) };
-        auto result = _::invoke(data, &Data::get);
+        auto result = _::invoke<unordered_set>(data, &Data::get);
         for (auto& i : result) {
             assert(i == 2);
         }
@@ -1591,7 +1591,122 @@ test_invoke() {
     {
         Tracer t("unordered_multiset");
         unordered_multiset<Data> data { Data(3), Data(3), Data(3), Data(3) };
-        auto result = _::invoke(data, &Data::get);
+        auto result = _::invoke<unordered_multiset>(data, &Data::get);
+        for (auto& i : result) {
+            assert(i == 3);
+        }
+    }
+
+    {
+        Tracer t("map", false);
+    }
+
+    {
+        Tracer t("multimap", false);
+    }
+
+    {
+        Tracer t("unordered_map", false);
+    }
+
+    {
+        Tracer t("unordered_multimap", false);
+    }
+}
+
+void
+test_pluck() {
+    Tracer::suit_ = "pluck";
+
+    {
+        Tracer t("C-style array");
+        Data data[10];
+        auto result = _::pluck(data, &Data::i_);
+        for (auto& i : result) {
+            assert(i == 0);
+        }
+    }
+
+    {
+        Tracer t("array");
+        array<Data, 10> data;
+        auto result = _::pluck(data, &Data::i_);
+        for (auto& i : result) {
+            assert(i == 0);
+        }
+    }
+
+    {
+        Tracer t("string", false);
+    }
+
+    {
+        Tracer t("vector");
+        vector<Data> data(10);
+        auto result = _::pluck(data, &Data::i_);
+        for (auto& i : result) {
+            assert(i == 0);
+        }
+    }
+
+    {
+        Tracer t("deque");
+        deque<Data> data(10);
+        auto result = _::pluck<deque>(data, &Data::i_);
+        for (auto& i : result) {
+            assert(i == 0);
+        }
+    }
+
+    {
+        Tracer t("list");
+        list<Data> data(10);
+        auto result = _::pluck<list>(data, &Data::i_);
+        for (auto& i : result) {
+            assert(i == 0);
+        }
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<Data> data(10);
+        auto result = _::pluck<forward_list>(data, &Data::i_);
+        for (auto& i : result) {
+            assert(i == 0);
+        }
+    }
+
+    {
+        Tracer t("set");
+        set<Data> data { Data(), Data(), Data(), Data() };
+        auto result = _::pluck<set>(data, &Data::i_);
+        for (auto& i : result) {
+            assert(i == 0);
+        }
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<Data> data { Data(1), Data(1), Data(1), Data(1) };
+        auto result = _::pluck<multiset>(data, &Data::i_);
+        for (auto& i : result) {
+            assert(i == 1);
+        }
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<Data> data { Data(2), Data(2), Data(2), Data(2) };
+        auto result = _::pluck<unordered_set>(data, &Data::i_);
+        for (auto& i : result) {
+            assert(i == 2);
+        }
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<Data> data { Data(3), Data(3), Data(3), Data(3) };
+        auto result = _::pluck<unordered_multiset>(data, &Data::i_);
         for (auto& i : result) {
             assert(i == 3);
         }
@@ -1626,6 +1741,7 @@ int main() {
     test_some();
     test_contains();
     test_invoke();
+    test_pluck();
 
     cout << "All tests passed." << endl;
     return 0;

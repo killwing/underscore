@@ -23,27 +23,27 @@ Not Supported:
 * queue & priority_queue
 
 Collection Functions (Requirement):
-* [x] each (I)
-* [x] map (I)
-* [x] reduce (I)
-* [x] reduceRight (B)
-* [x] find (I)
-* [x] filter (I)
-* [ ] *where*
-* [x] reject (I)
-* [x] every (I)
-* [x] some (I)
-* [x] contains (I)
-* [x] invoke (I)
-* [ ] *pluck* (I)
-* [ ] *max*
-* [ ] *min*
-* [ ] *sortBy* (R)
-* [ ] *groupBy*
-* [ ] *countBy*
-* [ ] *shuffle*
-* [ ] *toArray*
-* [ ] *size*
+* each (I)
+* map (I)
+* reduce (I)
+* reduceRight (B)
+* find (I)
+* filter (I)
+* *where*
+* reject (I)
+* every (I)
+* some (I)
+* contains (I)
+* invoke (I)
+* *pluck* (I)
+* *max*
+* *min*
+* *sortBy* (R)
+* *groupBy*
+* *countBy*
+* *shuffle*
+* *toArray*
+* *size*
 
 **This library is still under development.**
 
