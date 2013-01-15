@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <random>
 
 namespace _ {
 
@@ -209,7 +210,7 @@ invoke(Collection&& obj, Function method, Argument&&... args)
 
     using R = typename std::decay<decltype(((*std::begin(obj)).*method)(args...))>::type;
     RetCollection<R> result;
-    for (auto&i : obj) {
+    for (auto& i : obj) {
         util::add(result, (i.*method)(std::forward<Argument>(args)...));
     }
     return result;
@@ -226,7 +227,7 @@ pluck(Collection&& obj, Function member)
 
     using R = typename std::decay<decltype((*std::begin(obj)).*member)>::type;
     RetCollection<R> result;
-    for (auto&i : obj) {
+    for (auto& i : obj) {
         util::add(result, i.*member);
     }
     return result;
@@ -268,6 +269,15 @@ min(Collection&& obj, Function iterator)
     return std::min_element(std::begin(obj), std::end(obj), [&](const R& a, const R& b) {
             return iterator(a) < iterator(b);
     });
+}
+
+
+template<typename Collection>
+Collection
+shuffle(Collection obj) {
+    std::random_device rd;
+    std::shuffle(std::begin(obj), std::end(obj), std::mt19937(rd()));
+    return obj;
 }
 
 

@@ -1970,6 +1970,83 @@ test_min() {
 }
 
 void
+test_shuffle() {
+    Tracer::suit_ = "shuffle";
+
+    {
+        Tracer t("C-style array", false);
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::shuffle(data);
+        assert(result != data);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        string result = _::shuffle(data);
+        assert(result != data);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        vector<int> result = _::shuffle(data);
+        assert(result != data);
+    }
+
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        deque<int> result = _::shuffle(data);
+        assert(result != data);
+    }
+
+    {
+        Tracer t("list", false);
+    }
+
+    {
+        Tracer t("forward_list", false);
+    }
+
+    {
+        Tracer t("set", false);
+    }
+
+    {
+        Tracer t("multiset", false);
+    }
+
+    {
+        Tracer t("unordered_set", false);
+    }
+
+    {
+        Tracer t("unordered_multiset", false);
+    }
+
+    {
+        Tracer t("map", false);
+    }
+
+    {
+        Tracer t("multimap", false);
+    }
+
+    {
+        Tracer t("unordered_map", false);
+    }
+
+    {
+        Tracer t("unordered_multimap", false);
+    }
+}
+
+void
 test_size() {
     Tracer::suit_ = "size";
 
@@ -2095,6 +2172,7 @@ int main() {
     test_pluck();
     test_max();
     test_min();
+    test_shuffle();
     test_size();
 
     cout << "All tests passed." << endl;

@@ -36,12 +36,12 @@ Collection Functions (Requirement):
 * contains (I)
 * invoke (I)
 * pluck (I)
-* max (I)
-* min (I)
-* *sortBy*
+* max (F)
+* min (F)
+* *sortBy* (R)
 * *groupBy*
 * *countBy*
-* *shuffle*
+* shuffle (R)
 * *toArray*
 * size (I)
 
