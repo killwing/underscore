@@ -2,10 +2,23 @@
 #define UNDERSCORE_H
 
 #include <algorithm>
+#include <numeric>
 
 namespace _ {
 
 namespace util {
+
+template<typename T>
+class HasSize {
+private:
+    template<typename U>
+    static auto check(U* p) -> decltype(p->size(), int());
+
+    template<typename>
+    static void check(...);
+public:
+    static const bool value = !std::is_void<decltype(check<T>(nullptr))>::value;
+};
 
 template<typename T>
 class HasPushBack {
@@ -72,13 +85,11 @@ add(T& c, U&& v) {
 template<typename Collection, typename Function>
 void
 each(Collection&& obj, Function iterator) {
-    for (auto& i : obj) {
-        iterator(i);
-    }
+    std::for_each(std::begin(obj), std::end(obj), iterator);
 }
 
 
-template<template<class ...T>
+template<template<typename ...T>
          class RetCollection = std::vector,
          typename Collection,
          typename Function>
@@ -98,10 +109,7 @@ map(Collection&& obj, Function iterator)
 template<typename Collection, typename Function, typename Memo>
 Memo
 reduce(Collection&& obj, Function iterator, Memo memo) {
-    for (auto& i : obj) {
-        memo = iterator(memo, i);
-    }
-    return memo;
+    return std::accumulate(std::begin(obj), std::end(obj), memo, iterator);
 }
 
 
@@ -189,7 +197,7 @@ invoke(Collection&& obj, Function method, Argument&&... args)
     }
 }
 
-template<template<class ...T>
+template<template<typename ...T>
          class RetCollection = std::vector,
          typename Collection,
          typename Function,
@@ -208,21 +216,77 @@ invoke(Collection&& obj, Function method, Argument&&... args)
 }
 
 
-template<template<class ...T>
+template<template<typename ...T>
          class RetCollection = std::vector,
          typename Collection,
          typename Function>
 auto
 pluck(Collection&& obj, Function member)
-    -> RetCollection<typename std::decay<decltype(((*std::begin(obj)).*member))>::type> {
+    -> RetCollection<typename std::decay<decltype((*std::begin(obj)).*member)>::type> {
 
-    using R = typename std::decay<decltype(((*std::begin(obj)).*member))>::type;
+    using R = typename std::decay<decltype((*std::begin(obj)).*member)>::type;
     RetCollection<R> result;
     for (auto&i : obj) {
         util::add(result, i.*member);
     }
     return result;
 }
+
+
+template<typename Collection>
+auto
+max(Collection&& obj) 
+    -> decltype(std::begin(obj)) {
+    return std::max_element(std::begin(obj), std::end(obj));
+}
+
+template<typename Collection, typename Function>
+auto
+max(Collection&& obj, Function iterator)
+    -> decltype(std::begin(obj)) {
+
+    using R = typename std::decay<decltype(*std::begin(obj))>::type;
+    return std::max_element(std::begin(obj), std::end(obj), [&](const R& a, const R& b) {
+            return iterator(a) < iterator(b);
+    });
+}
+
+
+template<typename Collection>
+auto
+min(Collection&& obj) 
+    -> decltype(std::begin(obj)) {
+    return std::min_element(std::begin(obj), std::end(obj));
+}
+
+template<typename Collection, typename Function>
+auto
+min(Collection&& obj, Function iterator)
+    -> decltype(std::begin(obj)) {
+
+    using R = typename std::decay<decltype(*std::begin(obj))>::type;
+    return std::min_element(std::begin(obj), std::end(obj), [&](const R& a, const R& b) {
+            return iterator(a) < iterator(b);
+    });
+}
+
+
+template<typename Collection>
+typename std::enable_if<util::HasSize<typename std::remove_reference<Collection>::type>::value, size_t>::type
+size(Collection&& obj) {
+    return obj.size();
+}
+
+template<typename Collection>
+typename std::enable_if<!util::HasSize<typename std::remove_reference<Collection>::type>::value, size_t>::type
+size(Collection&& obj) {
+    size_t s = 0;
+    for (auto& _ : obj) {
+        ++s;
+    }
+    return s;
+}
+
 
 } // namespace _
 

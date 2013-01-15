@@ -1729,6 +1729,357 @@ test_pluck() {
     }
 }
 
+void
+test_max() {
+    Tracer::suit_ = "max";
+
+    {
+        Tracer t("C-style array");
+        Data data[] { Data(1), Data(2), Data(3), Data(4) };
+        Data* result = _::max(data, [](const Data& d) {
+            return d.i_;
+        });
+        assert(result->get() == 4);
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::max(data);
+        assert(*result == 9);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        auto result = _::max(data);
+        assert(*result == 'w');
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::max(data);
+        assert(*result == 9);
+    }
+
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::max(data);
+        assert(*result == 9);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::max(data);
+        assert(*result == 9);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::max(data);
+        assert(*result == 9);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::max(data);
+        assert(*result == 9);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::max(data);
+        assert(*result == 8);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::max(data);
+        assert(*result == 9);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::max(data);
+        assert(*result == 8);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::max(data, [](const pair<const int, string>& v) {
+            return v.first;
+        });
+        assert(result->second == "z");
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::max(data, [](const pair<const int, string>& v) {
+            return v.second;
+        });
+        assert(result->first == 10);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::max(data, [](const pair<const int, string>& v) {
+            return v.first;
+        });
+        assert(result->second == "z");
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::max(data, [](const pair<const int, string>& v) {
+            return v.second;
+        });
+        assert(result->first == 10);
+    }
+}
+
+void
+test_min() {
+    Tracer::suit_ = "min";
+
+    {
+        Tracer t("C-style array");
+        Data data[] { Data(1), Data(2), Data(3), Data(4) };
+        Data* result = _::min(data, [](const Data& d) {
+            return d.i_;
+        });
+        assert(result->get() == 1);
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::min(data);
+        assert(*result == 0);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        auto result = _::min(data);
+        assert(*result == ' ');
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::min(data);
+        assert(*result == 0);
+    }
+
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::min(data);
+        assert(*result == 0);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::min(data);
+        assert(*result == 0);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::min(data);
+        assert(*result == 0);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::min(data);
+        assert(*result == 0);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::min(data);
+        assert(*result == 0);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::min(data);
+        assert(*result == 0);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::min(data);
+        assert(*result == 0);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::min(data, [](const pair<const int, string>& v) {
+            return v.first;
+        });
+        assert(result->second == "a");
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::min(data, [](const pair<const int, string>& v) {
+            return v.second;
+        });
+        assert(result->first == 2);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::min(data, [](const pair<const int, string>& v) {
+            return v.first;
+        });
+        assert(result->second == "a");
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::min(data, [](const pair<const int, string>& v) {
+            return v.second;
+        });
+        assert(result->first == 2);
+    }
+}
+
+void
+test_size() {
+    Tracer::suit_ = "size";
+
+    {
+        Tracer t("C-style array");
+        int data[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::size(data);
+        assert(result == 9);
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::size(data);
+        assert(result == 10);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        auto result = _::size(data);
+        assert(result == 12);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::size(data);
+        assert(result == 10);
+    }
+
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::size(data);
+        assert(result == 10);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::size(data);
+        assert(result == 10);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::size(data);
+        assert(result == 10);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::size(data);
+        assert(result == 10);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::size(data);
+        assert(result == 10);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::size(data);
+        assert(result == 10);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 2, 2, 4, 4, 6, 6, 8, 8 };
+        auto result = _::size(data);
+        assert(result == 10);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::size(data);
+        assert(result == 7);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::size(data);
+        assert(result == 6);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::size(data);
+        assert(result == 7);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::size(data);
+        assert(result == 6);
+    }
+}
+
+
 int main() {
     test_each();
     test_map();
@@ -1742,6 +2093,9 @@ int main() {
     test_contains();
     test_invoke();
     test_pluck();
+    test_max();
+    test_min();
+    test_size();
 
     cout << "All tests passed." << endl;
     return 0;

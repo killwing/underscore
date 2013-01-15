@@ -35,15 +35,15 @@ Collection Functions (Requirement):
 * some (I)
 * contains (I)
 * invoke (I)
-* *pluck* (I)
-* *max*
-* *min*
-* *sortBy* (R)
+* pluck (I)
+* max (I)
+* min (I)
+* *sortBy*
 * *groupBy*
 * *countBy*
 * *shuffle*
 * *toArray*
-* *size*
+* size (I)
 
 **This library is still under development.**
 
