@@ -95,7 +95,7 @@ template<template<typename ...T>
          typename Collection,
          typename Function>
 auto
-map(Collection&& obj, Function iterator)
+map(const Collection& obj, Function iterator)
     -> RetCollection<typename std::decay<decltype(iterator(*std::begin(obj)))>::type> {
 
     using R = typename std::decay<decltype(iterator(*std::begin(obj)))>::type;
@@ -109,15 +109,15 @@ map(Collection&& obj, Function iterator)
 
 template<typename Collection, typename Function, typename Memo>
 Memo
-reduce(Collection&& obj, Function iterator, Memo memo) {
+reduce(const Collection& obj, Function iterator, Memo memo) {
     return std::accumulate(std::begin(obj), std::end(obj), memo, iterator);
 }
 
 
 template<typename Collection, typename Function, typename Memo>
 Memo
-reduceRight(Collection&& obj, Function iterator, Memo memo) {
-    for (typename std::remove_reference<Collection>::type::const_reverse_iterator it = obj.rbegin(); it != obj.rend(); ++it) {
+reduceRight(const Collection& obj, Function iterator, Memo memo) {
+    for (typename Collection::const_reverse_iterator it = obj.rbegin(); it != obj.rend(); ++it) {
         memo = iterator(memo, *it);
     }
     return memo;
@@ -142,9 +142,9 @@ find(Collection&& obj, Function iterator)
 
 
 template<typename Collection, typename Function>
-typename std::decay<Collection>::type
-filter(Collection&& obj, Function iterator) {
-    typename std::decay<Collection>::type result;
+Collection
+filter(const Collection& obj, Function iterator) {
+    Collection result;
     for (auto& i : obj) {
         if (iterator(i)) {
             util::add(result, i);
@@ -155,9 +155,9 @@ filter(Collection&& obj, Function iterator) {
 
 
 template<typename Collection, typename Function>
-typename std::decay<Collection>::type
-reject(Collection&& obj, Function iterator) {
-    typename std::decay<Collection>::type result;
+Collection
+reject(const Collection& obj, Function iterator) {
+    Collection result;
     for (auto& i : obj) {
         if (!iterator(i)) {
             util::add(result, i);
@@ -169,21 +169,21 @@ reject(Collection&& obj, Function iterator) {
 
 template<typename Collection, typename Function>
 bool
-every(Collection&& obj, Function iterator) {
+every(const Collection& obj, Function iterator) {
     return std::all_of(std::begin(obj), std::end(obj), iterator);
 }
 
 
 template<typename Collection, typename Function>
 bool
-some(Collection&& obj, Function iterator) {
+some(const Collection& obj, Function iterator) {
     return std::any_of(std::begin(obj), std::end(obj), iterator);
 }
 
 
 template<typename Collection, typename U>
 bool
-contains(Collection&& obj, U&& value) {
+contains(const Collection& obj, U&& value) {
     return std::find(std::begin(obj), std::end(obj), std::forward<U>(value)) != std::end(obj);
 }
 
@@ -222,7 +222,7 @@ template<template<typename ...T>
          typename Collection,
          typename Function>
 auto
-pluck(Collection&& obj, Function member)
+pluck(const Collection& obj, Function member)
     -> RetCollection<typename std::decay<decltype((*std::begin(obj)).*member)>::type> {
 
     using R = typename std::decay<decltype((*std::begin(obj)).*member)>::type;
@@ -274,32 +274,35 @@ min(Collection&& obj, Function iterator)
 
 template<typename Collection, typename Function>
 Collection
-sortBy(Collection obj, Function iterator) {
+sortBy(const Collection& obj, Function iterator) {
+    Collection result = obj;
     using R = typename Collection::value_type;
-    std::sort(std::begin(obj), std::end(obj), [&](const R& a, const R& b) {
+    std::sort(std::begin(result), std::end(result), [&](const R& a, const R& b) {
         return iterator(a) < iterator(b);
     });
-    return obj;
+    return result;
 }
+
 
 template<typename Collection>
 Collection
-shuffle(Collection obj) {
+shuffle(const Collection& obj) {
+    Collection result = obj;
     std::random_device rd;
-    std::shuffle(std::begin(obj), std::end(obj), std::mt19937(rd()));
-    return obj;
+    std::shuffle(std::begin(result), std::end(result), std::mt19937(rd()));
+    return result;
 }
 
 
 template<typename Collection>
-typename std::enable_if<util::HasSize<typename std::remove_reference<Collection>::type>::value, size_t>::type
-size(Collection&& obj) {
+typename std::enable_if<util::HasSize<Collection>::value, size_t>::type
+size(const Collection& obj) {
     return obj.size();
 }
 
 template<typename Collection>
-typename std::enable_if<!util::HasSize<typename std::remove_reference<Collection>::type>::value, size_t>::type
-size(Collection&& obj) {
+typename std::enable_if<!util::HasSize<Collection>::value, size_t>::type
+size(const Collection& obj) {
     size_t s = 0;
     for (auto& _ : obj) {
         ++s;
