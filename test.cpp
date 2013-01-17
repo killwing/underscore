@@ -1970,6 +1970,99 @@ test_min() {
 }
 
 void
+test_sortBy() {
+    Tracer::suit_ = "sortBy";
+
+    {
+        Tracer t("C-style array", false);
+    }
+
+    {
+        Tracer t("array");
+        array<Data, 6> data   = { Data(4), Data(1), Data(3), Data(2), Data(0), Data(5) };
+        array<Data, 6> expect = { Data(0), Data(1), Data(2), Data(3), Data(4), Data(5) };
+        auto result = _::sortBy(data, [](const Data& v) {
+            return v.i_;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        string expect(" !dehllloorw");
+        auto result = _::sortBy(data, [](char v) {
+            return v;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data   = { 9, 1, 0, 3, 2, 5, 6, 4, 8, 7 };
+        vector<int> expect = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::sortBy(data, [](int v) {
+            return v;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("deque");
+        deque<int> data   = { 9, 1, 0, 3, 2, 5, 6, 4, 8, 7 };
+        deque<int> expect = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::sortBy(data, [](int v) {
+            return v;
+        });
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("list", false);
+    }
+
+    {
+        Tracer t("list", false);
+    }
+
+    {
+        Tracer t("forward_list", false);
+    }
+
+    {
+        Tracer t("set", false);
+    }
+
+    {
+        Tracer t("multiset", false);
+    }
+
+    {
+        Tracer t("unordered_set", false);
+    }
+
+    {
+        Tracer t("unordered_multiset", false);
+    }
+
+    {
+        Tracer t("map", false);
+    }
+
+    {
+        Tracer t("multimap", false);
+    }
+
+    {
+        Tracer t("unordered_map", false);
+    }
+
+    {
+        Tracer t("unordered_multimap", false);
+    }
+}
+
+void
 test_shuffle() {
     Tracer::suit_ = "shuffle";
 
@@ -2172,6 +2265,7 @@ int main() {
     test_pluck();
     test_max();
     test_min();
+    test_sortBy();
     test_shuffle();
     test_size();
 

@@ -267,10 +267,20 @@ min(Collection&& obj, Function iterator)
 
     using R = typename std::decay<decltype(*std::begin(obj))>::type;
     return std::min_element(std::begin(obj), std::end(obj), [&](const R& a, const R& b) {
-            return iterator(a) < iterator(b);
+        return iterator(a) < iterator(b);
     });
 }
 
+
+template<typename Collection, typename Function>
+Collection
+sortBy(Collection obj, Function iterator) {
+    using R = typename Collection::value_type;
+    std::sort(std::begin(obj), std::end(obj), [&](const R& a, const R& b) {
+        return iterator(a) < iterator(b);
+    });
+    return obj;
+}
 
 template<typename Collection>
 Collection

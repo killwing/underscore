@@ -38,7 +38,7 @@ Collection Functions (Requirement):
 * pluck (I)
 * max (F)
 * min (F)
-* *sortBy* (R)
+* sortBy (R)
 * *groupBy*
 * *countBy*
 * shuffle (R)
