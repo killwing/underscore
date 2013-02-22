@@ -1,3 +1,5 @@
+#include "underscore.h"
+
 #include <iostream>
 #include <sstream>
 #include <cassert>
@@ -13,7 +15,6 @@
 #include <map> // multimap
 #include <unordered_map> // unordered_multimap
 
-#include "underscore.h"
 using namespace std;
 
 class Data {
@@ -2022,10 +2023,6 @@ test_sortBy() {
     }
 
     {
-        Tracer t("list", false);
-    }
-
-    {
         Tracer t("forward_list", false);
     }
 
@@ -2059,6 +2056,321 @@ test_sortBy() {
 
     {
         Tracer t("unordered_multimap", false);
+    }
+}
+
+void
+test_groupBy() {
+    Tracer::suit_ = "groupBy";
+
+    {
+        Tracer t("C-style array");
+        int data[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::groupBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        multimap<bool, int> expect { {false, 1}, {false, 3}, {false, 5}, {false, 7}, {false, 9}, {true, 2}, {true, 4}, {true, 6}, {true, 8} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::groupBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        multimap<bool, int> expect { {false, 1}, {false, 3}, {false, 5}, {false, 7}, {false, 9}, {true, 0}, {true, 2}, {true, 4}, {true, 6}, {true, 8} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("string");
+        string data("Hello World!");
+        auto result = _::groupBy(data, [](char i) {
+            return i > 90;
+        });
+        multimap<bool, char> expect { {false, 'H'}, {false, ' '}, {false, 'W'}, {false, '!'},
+            {true, 'e'}, {true, 'l'}, {true, 'l'}, {true, 'o'}, {true, 'o'}, {true, 'r'}, {true, 'l'}, {true, 'd'} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::groupBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        multimap<bool, int> expect { {false, 1}, {false, 3}, {false, 5}, {false, 7}, {false, 9}, {true, 0}, {true, 2}, {true, 4}, {true, 6}, {true, 8} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::groupBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        multimap<bool, int> expect { {false, 1}, {false, 3}, {false, 5}, {false, 7}, {false, 9}, {true, 0}, {true, 2}, {true, 4}, {true, 6}, {true, 8} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::groupBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        multimap<bool, int> expect { {false, 1}, {false, 3}, {false, 5}, {false, 7}, {false, 9}, {true, 0}, {true, 2}, {true, 4}, {true, 6}, {true, 8} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::groupBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        multimap<bool, int> expect { {false, 1}, {false, 3}, {false, 5}, {false, 7}, {false, 9}, {true, 0}, {true, 2}, {true, 4}, {true, 6}, {true, 8} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::groupBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        multimap<bool, int> expect { {false, 1}, {false, 3}, {false, 5}, {false, 7}, {false, 9}, {true, 0}, {true, 2}, {true, 4}, {true, 6}, {true, 8} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4 };
+        auto result = _::groupBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        multimap<bool, int> expect { {false, 1}, {false, 1}, {false, 3}, {false, 3}, {true, 0}, {true, 0}, {true, 2}, {true, 2}, {true, 4}, {true, 4} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::groupBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        multimap<bool, int> expect { {false, 9}, {false, 7}, {false, 5}, {false, 3}, {false, 1}, {true, 8}, {true, 6}, {true, 4}, {true, 2}, {true, 0} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4 };
+        auto result = _::groupBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        multimap<bool, int> expect { {false, 3}, {false, 3}, {false, 1}, {false, 1}, {true, 4}, {true, 4}, {true, 2}, {true, 2}, {true, 0}, {true, 0} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "xx"}, {20, "yy"}, {30, "zz"} };
+        auto result = _::groupBy(data, [](const pair<const int, string>& i) {
+            return i.second.size() > 1;
+        });
+        multimap<bool, pair<const int, string>> expect { {false, {1, "a"}}, {false, {2, "b"}}, {false, {3, "c"}}, {false, {4, "d"}},
+            {true, {10, "xx"}}, {true, {20, "yy"}}, {true, {30, "zz"}} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {1, "a"}, {1, "b"}, {2, "c"}, {2, "d"}, {10, "xx"}, {10, "yy"} };
+        auto result = _::groupBy(data, [](const pair<const int, string>& i) {
+            return i.second.size() > 1;
+        });
+        multimap<bool, pair<const int, string>> expect { {false, {1, "a"}}, {false, {1, "b"}}, {false, {2, "c"}}, {false, {2, "d"}},
+            {true, {10, "xx"}}, {true, {10, "yy"}} };
+        assert(result == expect);
+    }
+    
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "xx"}, {20, "yy"}, {30, "zz"} };
+        auto result = _::groupBy(data, [](const pair<const int, string>& i) {
+            return i.second.size() > 1;
+        });
+        multimap<bool, pair<const int, string>> expect { {false, {4, "d"}}, {false, {3, "c"}}, {false, {2, "b"}}, {false, {1, "a"}}, 
+            {true, {30, "zz"}}, {true, {20, "yy"}}, {true, {10, "xx"}} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {1, "a"}, {1, "b"}, {2, "c"}, {2, "d"}, {10, "xx"}, {10, "yy"} };
+        auto result = _::groupBy(data, [](const pair<const int, string>& i) {
+            return i.second.size() > 1;
+        });
+        multimap<bool, pair<const int, string>> expect { {false, {2, "c"}}, {false, {2, "d"}}, {false, {1, "a"}}, {false, {1, "b"}}, 
+            {true, {10, "xx"}}, {true, {10, "yy"}} };
+        assert(result == expect);
+    }
+}
+
+void
+test_countBy() {
+    Tracer::suit_ = "countBy";
+
+    {
+        Tracer t("C-style array");
+        int data[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::countBy(data, [](const int& i) {
+            return i % 2 == 0 ? "even" : "odd";
+        });
+        map<const char*, size_t> expect { {"odd", 5}, {"even", 4} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::countBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        map<bool, size_t> expect { {false, 5}, {true, 5} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("string");
+        string data("Hello World!");
+        auto result = _::countBy(data, [](char i) {
+            return i > 90;
+        });
+        map<bool, size_t> expect { {false, 4}, {true, 8} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::countBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        map<bool, size_t> expect { {false, 5}, {true, 5} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("deque");
+        deque<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::countBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        map<bool, size_t> expect { {false, 5}, {true, 5} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::countBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        map<bool, size_t> expect { {false, 5}, {true, 5} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::countBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        map<bool, size_t> expect { {false, 5}, {true, 5} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::countBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        map<bool, size_t> expect { {false, 5}, {true, 5} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4 };
+        auto result = _::countBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        map<bool, size_t> expect { {false, 4}, {true, 6} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::countBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        map<bool, size_t> expect { {false, 5}, {true, 5} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4 };
+        auto result = _::countBy(data, [](const int& i) {
+            return i % 2 == 0;
+        });
+        map<bool, size_t> expect { {false, 4}, {true, 6} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "xx"}, {20, "yy"}, {30, "zz"} };
+        auto result = _::countBy(data, [](const pair<const int, string>& i) {
+            return i.second.size() > 1;
+        });
+        map<bool, size_t> expect { {false, 4}, {true, 3} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {1, "a"}, {1, "b"}, {2, "c"}, {2, "d"}, {10, "xx"}, {10, "yy"} };
+        auto result = _::countBy(data, [](const pair<const int, string>& i) {
+            return i.second.size() > 1;
+        });
+        map<bool, size_t> expect { {false, 4}, {true, 2} };
+        assert(result == expect);
+    }
+    
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "xx"}, {20, "yy"}, {30, "zz"} };
+        auto result = _::countBy(data, [](const pair<const int, string>& i) {
+            return i.second.size() > 1;
+        });
+        map<bool, size_t> expect { {false, 4}, {true, 3} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {1, "a"}, {1, "b"}, {2, "c"}, {2, "d"}, {10, "xx"}, {10, "yy"} };
+        auto result = _::countBy(data, [](const pair<const int, string>& i) {
+            return i.second.size() > 1;
+        });
+        map<bool, size_t> expect { {false, 4}, {true, 2} };
+        assert(result == expect);
     }
 }
 
@@ -2136,6 +2448,132 @@ test_shuffle() {
 
     {
         Tracer t("unordered_multimap", false);
+    }
+}
+
+void
+test_toArray() {
+    Tracer::suit_ = "toArray";
+
+    {
+        Tracer t("C-style array");
+        int data[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::toArray(data);
+        vector<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("array");
+        array<int, 10> data = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+        auto result = _::toArray<list>(data);
+        list<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("string");
+        string data("hello world!");
+        auto result = _::toArray<list>(data);
+        list<char> expect { 'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!' };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("vector");
+        vector<int> data = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::toArray(data);
+        vector<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("deque");
+        deque<int> data = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::toArray<deque>(data);
+        deque<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("list");
+        list<int> data = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::toArray(data);
+        vector<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("forward_list");
+        forward_list<int> data = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::toArray<list>(data);
+        list<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("set");
+        set<int> data = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::toArray<forward_list>(data);
+        forward_list<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multiset");
+        multiset<int> data = { 1, 1, 3, 3, 5, 5, 7, 7 };
+        auto result = _::toArray<multiset>(data);
+        multiset<int> expect { 1, 1, 3, 3, 5, 5, 7, 7 };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_set");
+        unordered_set<int> data = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        auto result = _::toArray<set>(data);
+        set<int> expect { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multiset");
+        unordered_multiset<int> data = { 1, 1, 3, 3, 5, 5, 7, 7 };
+        auto result = _::toArray<multiset>(data);
+        multiset<int> expect { 1, 1, 3, 3, 5, 5, 7, 7 };
+        assert(result == expect);
+    }
+
+    
+    {
+        Tracer t("map");
+        map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::toArray(data);
+        vector<pair<const int, string>> expect { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("multimap");
+        multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::toArray(data);
+        vector<pair<const int, string>> expect { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_map");
+        unordered_map<int, string> data { {1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {10, "x"}, {20, "y"}, {30, "z"} };
+        auto result = _::toArray<list>(data);
+        list<pair<const int, string>> expect { {30, "z"}, {20, "y"}, {10, "x"}, {4, "d"}, {3, "c"}, {2, "b"}, {1, "a"} };
+        assert(result == expect);
+    }
+
+    {
+        Tracer t("unordered_multimap");
+        unordered_multimap<int, string> data { {2, "a"}, {2, "b"}, {4, "c"}, {4, "d"}, {10, "x"}, {10, "y"} };
+        auto result = _::toArray<list>(data);
+        list<pair<const int, string>> expect { {10, "x"}, {10, "y"}, {4, "c"}, {4, "d"}, {2, "a"}, {2, "b"} };
+        assert(result == expect);
     }
 }
 
@@ -2266,7 +2704,10 @@ int main() {
     test_max();
     test_min();
     test_sortBy();
+    test_groupBy();
+    test_countBy();
     test_shuffle();
+    test_toArray();
     test_size();
 
     cout << "All tests passed." << endl;

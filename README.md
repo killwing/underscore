@@ -39,12 +39,10 @@ Collection Functions (Requirement):
 * max (F)
 * min (F)
 * sortBy (R)
-* *groupBy*
-* *countBy*
+* groupBy (I)
+* countBy (I)
 * shuffle (R)
-* *toArray*
+* toArray (I)
 * size (I)
 
-**This library is still under development.**
-
-
+See `test.cpp` for examples.

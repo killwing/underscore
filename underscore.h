@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <numeric>
 #include <random>
+#include <map>
 
 namespace _ {
 
@@ -183,8 +184,8 @@ some(const Collection& obj, Function iterator) {
 
 template<typename Collection, typename U>
 bool
-contains(const Collection& obj, U&& value) {
-    return std::find(std::begin(obj), std::end(obj), std::forward<U>(value)) != std::end(obj);
+contains(const Collection& obj, const U& value) {
+    return std::find(std::begin(obj), std::end(obj), value) != std::end(obj);
 }
 
 
@@ -284,6 +285,42 @@ sortBy(const Collection& obj, Function iterator) {
 }
 
 
+template<typename Collection, typename Function>
+auto
+groupBy(const Collection& obj, Function iterator) 
+    -> std::multimap<typename std::decay<decltype(iterator(*std::begin(obj)))>::type, 
+                     typename std::decay<decltype(*std::begin(obj))>::type> {
+
+    using R = std::multimap<typename std::decay<decltype(iterator(*std::begin(obj)))>::type, 
+                            typename std::decay<decltype(*std::begin(obj))>::type>;
+    R result;
+    for (auto& i : obj) {
+        result.insert(typename R::value_type(iterator(i), i)); 
+    }
+    return result;
+}
+
+
+template<typename Collection, typename Function>
+auto
+countBy(const Collection& obj, Function iterator) 
+    -> std::map<typename std::decay<decltype(iterator(*std::begin(obj)))>::type, std::size_t> {
+
+    using R = std::map<typename std::decay<decltype(iterator(*std::begin(obj)))>::type, std::size_t>;
+    R result;
+    for (auto& i : obj) {
+        auto&& v = iterator(i);
+        typename R::iterator it = result.find(v);
+        if (it == result.end()) {
+            result.insert(typename R::value_type(std::forward<decltype(v)>(v), 1)); 
+        } else {
+            ++it->second;
+        }
+    }
+    return result;
+}
+
+
 template<typename Collection>
 Collection
 shuffle(const Collection& obj) {
@@ -291,6 +328,16 @@ shuffle(const Collection& obj) {
     std::random_device rd;
     std::shuffle(std::begin(result), std::end(result), std::mt19937(rd()));
     return result;
+}
+
+
+template<template<typename ...T>
+         class RetCollection = std::vector,
+         typename Collection>
+auto
+toArray(const Collection& obj)
+    -> RetCollection<typename std::decay<decltype(*std::begin(obj))>::type> {
+        return RetCollection<typename std::decay<decltype(*std::begin(obj))>::type>(std::begin(obj), std::end(obj));
 }
 
 
