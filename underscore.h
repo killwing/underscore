@@ -86,7 +86,7 @@ add(T& c, U&& v) {
 
 template<typename Collection, typename Function>
 void
-each(Collection&& obj, Function iterator) {
+each(Collection& obj, Function iterator) {
     std::for_each(std::begin(obj), std::end(obj), iterator);
 }
 
@@ -136,7 +136,7 @@ reduceRight(T (&obj)[N], Function iterator, Memo memo) {
 
 template<typename Collection, typename Function>
 auto
-find(Collection&& obj, Function iterator)
+find(Collection& obj, Function iterator)
     -> decltype(std::begin(obj)) {
     return std::find_if(std::begin(obj), std::end(obj), iterator);
 }
@@ -191,7 +191,7 @@ contains(const Collection& obj, const U& value) {
 
 template<typename Collection, typename Function, typename... Argument>
 auto
-invoke(Collection&& obj, Function method, Argument&&... args)
+invoke(Collection& obj, Function method, Argument&&... args)
     -> typename std::enable_if<std::is_void<decltype(((*std::begin(obj)).*method)(args...))>::value, void>::type {
 
     for (auto& i : obj) {
@@ -205,7 +205,7 @@ template<template<typename ...T>
          typename Function,
          typename... Argument>
 auto
-invoke(Collection&& obj, Function method, Argument&&... args)
+invoke(Collection& obj, Function method, Argument&&... args)
     -> typename std::enable_if<!std::is_void<decltype(((*std::begin(obj)).*method)(args...))>::value,
        RetCollection<typename std::decay<decltype(((*std::begin(obj)).*method)(args...))>::type>>::type {
 
@@ -237,14 +237,14 @@ pluck(const Collection& obj, Function member)
 
 template<typename Collection>
 auto
-max(Collection&& obj) 
+max(Collection& obj) 
     -> decltype(std::begin(obj)) {
     return std::max_element(std::begin(obj), std::end(obj));
 }
 
 template<typename Collection, typename Function>
 auto
-max(Collection&& obj, Function iterator)
+max(Collection& obj, Function iterator)
     -> decltype(std::begin(obj)) {
 
     using R = typename std::decay<decltype(*std::begin(obj))>::type;
@@ -256,14 +256,14 @@ max(Collection&& obj, Function iterator)
 
 template<typename Collection>
 auto
-min(Collection&& obj) 
+min(Collection& obj) 
     -> decltype(std::begin(obj)) {
     return std::min_element(std::begin(obj), std::end(obj));
 }
 
 template<typename Collection, typename Function>
 auto
-min(Collection&& obj, Function iterator)
+min(Collection& obj, Function iterator)
     -> decltype(std::begin(obj)) {
 
     using R = typename std::decay<decltype(*std::begin(obj))>::type;
